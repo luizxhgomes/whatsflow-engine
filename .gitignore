@@ -1,0 +1,58 @@
+# Environment & Secrets
+# Bloqueia todos os arquivos .env* exceto os templates de exemplo/documentação.
+# O negativo (!) precisa vir DEPOIS da regra de bloqueio.
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.key
+*.pem
+*.p12
+*.keystore
+secrets.json
+credentials.json
+
+# Dependencies
+node_modules/
+node_modules
+.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+
+# Build & Logs
+dist/
+build/
+.next/
+out/
+.turbo/
+*.log
+logs/
+coverage/
+.coverage/
+.nyc_output/
+
+# Testing
+playwright-report/
+test-results/
+tests/coverage/
+
+# IDE & OS
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+*.swo
+*~
+
+# AIOX Local
+.aiox-core/local/
+.aiox/handoffs/
+.aiox/install-log.txt
+.claude/settings.local.json
+.claude/agent-memory/*/session-*.md
+
+# Temporary
+*.tmp
+*.temp
+.cache/
