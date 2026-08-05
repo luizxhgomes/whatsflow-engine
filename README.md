@@ -40,15 +40,38 @@ npm install && npm run dev
 ## Arquitetura do disparo
 
 ```mermaid
+%%{init: {'theme':'base','themeVariables':{
+  'background':'#0B141A','primaryColor':'#0F2620','primaryTextColor':'#E9EDEF',
+  'primaryBorderColor':'#25D366','lineColor':'#00A884','secondaryColor':'#075E54',
+  'tertiaryColor':'#111B21','fontSize':'15px','edgeLabelBackground':'#0B141A',
+  'clusterBkg':'#111B21','clusterBorder':'#128C7E'}}}%%
 flowchart LR
-    A[Campanha criada] --> B[Fila QStash]
-    B --> C{Throttling adaptativo}
-    C --> D[Meta Cloud API v24.0]
-    D --> E[WhatsApp do contato]
-    D --> F[Webhook de status HMAC]
-    F --> G[(Supabase)]
-    G --> H[Métricas: enviada / entregue / lida / falhou]
+    subgraph ORQ[" Orquestração "]
+        A["Campanha<br/>criada"] --> B["Fila durável<br/>QStash"]
+        B --> C{"Throttling<br/>adaptativo"}
+    end
+    subgraph ENV[" Envio — API Oficial "]
+        C --> D["Meta Cloud API<br/>v24.0"]
+        D --> E["WhatsApp<br/>do contato"]
+    end
+    subgraph FBK[" Feedback loop "]
+        D --> F["Webhook de status<br/>assinado HMAC"]
+        F --> G[("Supabase")]
+        G --> H["Métricas por mensagem<br/>enviada · entregue · lida · falhou"]
+    end
+    H -.->|"qualidade do número<br/>regula a taxa"| C
+
+    style A fill:#111B21,stroke:#128C7E,color:#E9EDEF
+    style B fill:#0F2620,stroke:#25D366,color:#E9EDEF
+    style C fill:#075E54,stroke:#57D163,color:#FFFFFF
+    style D fill:#128C7E,stroke:#57D163,color:#FFFFFF
+    style E fill:#0F2620,stroke:#25D366,color:#D9FDD3
+    style F fill:#111B21,stroke:#00A884,color:#E9EDEF
+    style G fill:#111B21,stroke:#00A884,color:#E9EDEF
+    style H fill:#0F2620,stroke:#25D366,color:#D9FDD3
 ```
+
+O laço tracejado é o mecanismo de credibilidade: as métricas de qualidade do número realimentam o throttling — o sistema desacelera sozinho antes de comprometer a reputação do número.
 
 Padrão de código em todas as features:
 

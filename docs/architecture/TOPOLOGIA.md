@@ -45,6 +45,11 @@ Nenhum arquivo de feature vive na raiz; testes vivem ao lado do código que test
 Toda feature atravessa as mesmas quatro camadas, sem atalhos:
 
 ```mermaid
+%%{init: {'theme':'base','themeVariables':{
+  'background':'#0B141A','primaryColor':'#0F2620','primaryTextColor':'#E9EDEF',
+  'primaryBorderColor':'#25D366','lineColor':'#00A884','secondaryColor':'#075E54',
+  'tertiaryColor':'#111B21','fontSize':'15px','edgeLabelBackground':'#0B141A',
+  'clusterBkg':'#111B21','clusterBorder':'#128C7E'}}}%%
 flowchart TD
     P["Page (app/)"] --> H["Hook (hooks/)"]
     H --> S["Service (services/)"]
@@ -70,14 +75,19 @@ Decisões que sustentam o desenho: [ADR-001 fontes de verdade](ADR-001-fontes-de
 ## 3. Topologia de execução — o disparo em massa
 
 ```mermaid
+%%{init: {'theme':'base','themeVariables':{
+  'background':'#0B141A','primaryColor':'#0F2620','primaryTextColor':'#E9EDEF',
+  'primaryBorderColor':'#25D366','lineColor':'#00A884','secondaryColor':'#075E54',
+  'tertiaryColor':'#111B21','fontSize':'15px','edgeLabelBackground':'#0B141A',
+  'clusterBkg':'#111B21','clusterBorder':'#128C7E'}}}%%
 flowchart LR
     A[Campanha criada] --> B[Fila QStash]
-    B --> C{Throttling adaptativo\npor qualidade do número}
+    B --> C{"Throttling adaptativo<br/>por qualidade do número"}
     C --> D[Meta Cloud API v24.0]
     D --> E[WhatsApp do contato]
-    D --> F[Webhook de status\nassinado HMAC]
+    D --> F["Webhook de status<br/>assinado HMAC"]
     F --> G[(Supabase)]
-    G --> H[Métricas por mensagem:\nenviada / entregue / lida / falhou]
+    G --> H["Métricas por mensagem<br/>enviada · entregue · lida · falhou"]
     H --> C
 ```
 
@@ -89,6 +99,11 @@ reage ao rating de qualidade do número reportado pela Meta (`WHATSAPP_ADAPTIVE_
 35+ tabelas em 10 migrations, organizadas em 7 domínios:
 
 ```mermaid
+%%{init: {'theme':'base','themeVariables':{
+  'background':'#0B141A','primaryColor':'#0F2620','primaryTextColor':'#E9EDEF',
+  'primaryBorderColor':'#25D366','lineColor':'#00A884','secondaryColor':'#075E54',
+  'tertiaryColor':'#111B21','fontSize':'15px','edgeLabelBackground':'#0B141A',
+  'clusterBkg':'#111B21','clusterBorder':'#128C7E'}}}%%
 erDiagram
     CONTACTS ||--o{ CONTACT_TAGS : possui
     TAGS ||--o{ CONTACT_TAGS : classifica
