@@ -48,6 +48,7 @@ npm install && npm run dev
 flowchart LR
     subgraph ORQ[" Orquestração "]
         A["Campanha<br/>criada"] --> B["Fila durável<br/>QStash"]
+        W["Flows: jornadas<br/>automatizadas<br/>(workflow builder)"] --> B
         B --> C{"Throttling<br/>adaptativo"}
     end
     subgraph ENV[" Envio pela API Oficial "]
@@ -56,22 +57,30 @@ flowchart LR
     end
     subgraph FBK[" Feedback loop "]
         D --> F["Webhook de status<br/>assinado HMAC"]
-        F --> G[("Supabase")]
+        F --> R[("Redis: memória quente<br/>dedup de eventos ·<br/>última mensagem ·<br/>cache de settings")]
+        R --> G[("Supabase<br/>fonte da verdade")]
         G --> H["Métricas por mensagem<br/>enviada · entregue · lida · falhou"]
     end
-    H -.->|"qualidade do número<br/>regula a taxa"| C
+    E -.->|"resposta do contato (inbound)"| W
+    H -.->|"qualidade do número regula a taxa"| C
 
     style A fill:#111B21,stroke:#128C7E,color:#E9EDEF
     style B fill:#0F2620,stroke:#25D366,color:#E9EDEF
     style C fill:#075E54,stroke:#57D163,color:#FFFFFF
+    style W fill:#075E54,stroke:#57D163,color:#FFFFFF
     style D fill:#128C7E,stroke:#57D163,color:#FFFFFF
     style E fill:#0F2620,stroke:#25D366,color:#D9FDD3
+    style R fill:#111B21,stroke:#00A884,color:#E9EDEF
     style F fill:#111B21,stroke:#00A884,color:#E9EDEF
     style G fill:#111B21,stroke:#00A884,color:#E9EDEF
     style H fill:#0F2620,stroke:#25D366,color:#D9FDD3
 ```
 
-O laço tracejado é o mecanismo de credibilidade: as métricas de qualidade do número realimentam o throttling, o sistema desacelera sozinho antes de comprometer a reputação do número.
+Três engrenagens sustentam o desenho:
+
+- **Laço de credibilidade** (tracejado inferior): as métricas de qualidade do número realimentam o throttling, o sistema desacelera sozinho antes de comprometer a reputação do número.
+- **Memória quente no Redis**: cada evento de webhook passa pelo dedup (`SET NX` com TTL), a última mensagem de cada conversa fica em `ai:lastmsg:*` para o debounce da IA responder com contexto fresco, e as settings ganham cache com TTL. O Supabase permanece a fonte da verdade; o Redis é a camada de velocidade.
+- **Flows (jornadas automatizadas)**: o workflow builder visual (React Flow) constrói jornadas que reagem à resposta do contato (inbound) e reentram na fila de envio, com estado de conversa persistido em `workflow_conversations`.
 
 Padrão de código em todas as features:
 

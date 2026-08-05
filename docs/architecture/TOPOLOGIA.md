@@ -82,17 +82,26 @@ Decisões que sustentam o desenho: [ADR-001 fontes de verdade](ADR-001-fontes-de
   'clusterBkg':'#111B21','clusterBorder':'#128C7E'}}}%%
 flowchart LR
     A[Campanha criada] --> B[Fila QStash]
+    W["Flows: jornadas automatizadas<br/>(workflow builder)"] --> B
     B --> C{"Throttling adaptativo<br/>por qualidade do número"}
     C --> D[Meta Cloud API]
     D --> E[WhatsApp do contato]
     D --> F["Webhook de status<br/>assinado HMAC"]
-    F --> G[(Supabase)]
+    F --> R[("Redis: memória quente<br/>dedup · última mensagem · cache")]
+    R --> G[(Supabase)]
     G --> H["Métricas por mensagem<br/>enviada · entregue · lida · falhou"]
+    E -.->|resposta do contato| W
     H --> C
 ```
 
 O laço `métricas → throttling` é o mecanismo de credibilidade: a taxa de envio
 reage ao rating de qualidade do número reportado pela Meta (`WHATSAPP_ADAPTIVE_*`).
+
+Camadas de estado da execução: o Redis é a memória quente (dedup de eventos de webhook
+com TTL, última mensagem por conversa em `ai:lastmsg:*` para o debounce da IA, cache de
+settings); o Supabase é a fonte da verdade durável. Os Flows constroem jornadas
+automatizadas que reagem ao inbound do contato e reentram na fila, com estado em
+`workflow_conversations`.
 
 ## 4. Topologia de dados, domínios do schema
 
