@@ -16,3 +16,9 @@ ou contate o mantenedor diretamente via GitHub.
 ## Garantias auditadas
 As garantias de segurança do disparo (HMAC, dedup, throttling, RLS) estão documentadas
 com paths do código e formas de teste em `docs/seguranca/`.
+
+## Auditoria de vazamento
+Auditoria completa (working tree + histórico integral) registrada em
+`docs/seguranca/AUDITORIA-DE-VAZAMENTO.md`, com o procedimento para reproduzir.
+Todo clone provisiona infraestrutura própria; nada no repositório aponta para
+instância existente.
