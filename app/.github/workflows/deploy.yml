@@ -1,0 +1,138 @@
+name: Deploy WhatsFlow → VPS (whatsflow.example.com)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'components/**'
+      - 'hooks/**'
+      - 'lib/**'
+      - 'services/**'
+      - 'types/**'
+      - 'types.ts'
+      - 'package*.json'
+      - 'next.config.ts'
+      - 'infra/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build & Deploy WhatsFlow
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (standalone)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.WHATSFLOW_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.WHATSFLOW_SUPABASE_PUBLISHABLE_KEY }}
+        run: npm run build
+
+      - name: Preparar artefatos de deploy
+        run: |
+          mkdir -p deploy-bundle
+          cp -r .next/standalone/* deploy-bundle/
+          cp -r .next/static deploy-bundle/.next/static
+          cp -r public deploy-bundle/public
+          cp -r supabase/migrations deploy-bundle/supabase-migrations
+          tar -czf whatsflow-bundle.tar.gz -C deploy-bundle .
+
+      - name: Enviar bundle para VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "whatsflow-bundle.tar.gz"
+          target: "/opt/whatsflow/"
+          timeout: 120s
+          command_timeout: 15m
+
+      - name: Enviar .env.production para VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          connect_timeout: 60s
+          script: |
+            cat > /opt/whatsflow/.env.production << 'ENVEOF'
+            NODE_ENV=production
+            PORT=3000
+            HOSTNAME=0.0.0.0
+            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.WHATSFLOW_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${{ secrets.WHATSFLOW_SUPABASE_PUBLISHABLE_KEY }}
+            SUPABASE_SECRET_KEY=${{ secrets.WHATSFLOW_SUPABASE_SECRET_KEY }}
+            MASTER_PASSWORD=${{ secrets.WHATSFLOW_MASTER_PASSWORD }}
+            WHATSFLOW_API_KEY=${{ secrets.WHATSFLOW_API_KEY }}
+            WHATSFLOW_ADMIN_KEY=${{ secrets.WHATSFLOW_ADMIN_KEY }}
+            QSTASH_TOKEN=${{ secrets.WHATSFLOW_QSTASH_TOKEN }}
+            OPENROUTER_API_KEY=${{ secrets.WHATSFLOW_OPENROUTER_API_KEY }}
+            MEM0_API_KEY=${{ secrets.WHATSFLOW_MEM0_API_KEY }}
+            N8N_API_KEY=${{ secrets.WHATSFLOW_N8N_API_KEY }}
+            ENVEOF
+
+      - name: Deploy e reiniciar container
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          connect_timeout: 60s
+          script: |
+            set -e
+            echo "=== Deploy WhatsFlow ==="
+
+            # Extrair bundle
+            cd /opt/whatsflow
+            mkdir -p app
+            tar -xzf whatsflow-bundle.tar.gz -C app
+            rm -f whatsflow-bundle.tar.gz
+
+            # Parar container existente
+            docker stop whatsflow-app 2>/dev/null || true
+            docker rm whatsflow-app 2>/dev/null || true
+
+            # Rodar novo container com Node.js standalone
+            docker run -d \
+              --name whatsflow-app \
+              --restart always \
+              -p 3090:3000 \
+              --env-file /opt/whatsflow/.env.production \
+              -v /opt/whatsflow/app:/app:ro \
+              -w /app \
+              node:20-alpine \
+              node server.js
+
+            echo "Container iniciado, aguardando health check..."
+
+      - name: Health check
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          connect_timeout: 60s
+          script: |
+            sleep 8
+            if curl -sf http://localhost:3090/api/health > /dev/null; then
+              echo "✅ WhatsFlow OK — whatsflow.example.com"
+            else
+              echo "❌ Health check falhou"
+              echo "--- Logs ---"
+              docker logs --tail 30 whatsflow-app
+              exit 1
+            fi

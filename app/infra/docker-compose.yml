@@ -1,0 +1,29 @@
+# ============================================================
+# WhatsFlow — Docker Compose para VPS (example.com)
+# Roda ao lado do Brabissimo no mesmo servidor
+# ============================================================
+
+services:
+  whatsflow:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}
+    container_name: whatsflow-app
+    restart: always
+    ports:
+      - "3090:3000"
+    env_file:
+      - ../.env.production
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
