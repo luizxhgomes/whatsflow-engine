@@ -12,3 +12,7 @@ Nunca desative a verificação (`WEBHOOK_ALLOW_UNSIGNED`) em produção.
 ## Reporte de vulnerabilidades
 Abra uma issue com o rótulo `security` sem incluir detalhes exploráveis,
 ou contate o mantenedor diretamente via GitHub.
+
+## Garantias auditadas
+As garantias de segurança do disparo (HMAC, dedup, throttling, RLS) estão documentadas
+com paths do código e formas de teste em `docs/seguranca/`.

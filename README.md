@@ -12,7 +12,7 @@ Criado e mantido por **Luiz Henrique** ([@luizxhgomes](https://github.com/luizxh
 
 ## Visão geral
 
-O WhatsFlow Engine é um SaaS single-tenant completo de automação de marketing e atendimento no WhatsApp. Ele resolve o problema central do disparo em massa: fazer campanhas em escala **sem queimar o número, sem banimento e sem gambiarras** — porque toda a comunicação passa exclusivamente pela **API Oficial do WhatsApp (Meta Cloud API v24.0)**, nunca por bibliotecas não-oficiais de engenharia reversa.
+O WhatsFlow Engine é um SaaS single-tenant completo de automação de marketing e atendimento no WhatsApp. Ele resolve o problema central do disparo em massa: fazer campanhas em escala **sem queimar o número, sem banimento e sem gambiarras** — porque toda a comunicação passa exclusivamente pela **API Oficial do WhatsApp (Meta Cloud API)**, nunca por bibliotecas não-oficiais de engenharia reversa.
 
 O que o torna interessante como referência de construção de sistema é a orquestração ponta a ponta: fila durável com QStash, throttling adaptativo por qualidade de número, templates aprovados pela Meta, rastreio de status por mensagem (enviada, entregue, lida, falhou) e um workflow builder visual para jornadas conversacionais. A camada de IA (Vercel AI SDK v6, multi-provider) responde conversas no inbox com memória persistente.
 
@@ -31,7 +31,7 @@ npm install && npm run dev
 
 | Pilar | Como o engine implementa |
 |---|---|
-| **Zero engenharia reversa** | 100% Meta Cloud API v24.0. Sem Baileys, sem web-scraping, sem risco de ban por protocolo. |
+| **Zero engenharia reversa** | 100% Meta Cloud API. Sem Baileys, sem web-scraping, sem risco de ban por protocolo. |
 | **Templates aprovados** | Ciclo completo de criação, submissão e aprovação de templates HSM direto pela Meta. |
 | **Qualidade de número** | Throttling adaptativo (`WHATSAPP_ADAPTIVE_*`): a taxa de envio reage ao rating de qualidade do número. |
 | **Opt-in e rastreabilidade** | Contatos com origem rastreada, import CSV validado, status por mensagem via webhooks assinados (HMAC). |
@@ -51,7 +51,7 @@ flowchart LR
         B --> C{"Throttling<br/>adaptativo"}
     end
     subgraph ENV[" Envio — API Oficial "]
-        C --> D["Meta Cloud API<br/>v24.0"]
+        C --> D["Meta Cloud API"]
         D --> E["WhatsApp<br/>do contato"]
     end
     subgraph FBK[" Feedback loop "]
@@ -112,7 +112,7 @@ Funcionalidades: inbox de atendimento com visual WhatsApp Business, campanhas em
 
 ## Stack
 
-Next.js 16 (App Router, Turbopack) · React 19 · TypeScript 5.7 · Supabase (Postgres + Auth + Storage) · Upstash QStash + Redis · Meta WhatsApp Cloud API v24.0 · Vercel AI SDK v6 (Anthropic, OpenAI, Google) · Tailwind 4 + Radix/shadcn · Vitest + Playwright.
+Next.js 16 (App Router, Turbopack) · React 19 · TypeScript 5.7 · Supabase (Postgres + Auth + Storage) · Upstash QStash + Redis · Meta WhatsApp Cloud API · Vercel AI SDK v6 (Anthropic, OpenAI, Google) · Tailwind 4 + Radix/shadcn · Vitest + Playwright.
 
 ## Replique em 30 minutos
 
@@ -123,6 +123,16 @@ Next.js 16 (App Router, Turbopack) · React 19 · TypeScript 5.7 · Supabase (Po
 5. **Deploy** — Vercel (recomendado) ou Docker/VPS (`app/infra/`). O installer embutido (`/api/installer`) automatiza o provisionamento.
 
 Guias completos: [`docs/setup/README.md`](docs/setup/README.md) · [`docs/guides/`](docs/guides/) · [`app/infra/DEPLOY-GUIDE.md`](app/infra/DEPLOY-GUIDE.md)
+
+## Segurança e garantias
+
+Três documentos sustentam o lema do sistema, escritos a partir de auditoria do código real:
+
+- [`docs/seguranca/GARANTIAS-ANTI-BLOQUEIO.md`](docs/seguranca/GARANTIAS-ANTI-BLOQUEIO.md) — playbook preventivo contra bloqueios da Meta (opt-in, aquecimento, tiers, throttling por qualidade, LGPD) com checklist pré-campanha.
+- [`docs/seguranca/GARANTIAS-DE-ENTREGA.md`](docs/seguranca/GARANTIAS-DE-ENTREGA.md) — o que o sistema garante no disparo (HMAC, dedup, fila, retry, status por mensagem) e como testar cada garantia.
+- [`docs/seguranca/CONTRATO-API-OFICIAL.md`](docs/seguranca/CONTRATO-API-OFICIAL.md) — mapa das correspondências com a Meta Cloud API: tipos de mensagem, janela de 24 horas e códigos de erro.
+
+A jornada completa de implantação white-label vive em [`docs/onboarding/`](docs/onboarding/README.md): 5 fases com gates verificáveis, do install à operação contínua, mais o roadmap estratégico priorizado.
 
 ## Metodologia
 

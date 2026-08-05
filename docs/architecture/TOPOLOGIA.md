@@ -19,7 +19,7 @@ whatsflow-engine/
 │   ├── hooks/                #   estado e orquestração de dados (TanStack Query)
 │   ├── services/             #   API client — ponte tipada entre hooks e rotas
 │   ├── lib/                  #   regra de negócio e integrações
-│   │   ├── whatsapp/         #     Meta Cloud API v24.0: envio, templates, mídia, throttling
+│   │   ├── whatsapp/         #     Meta Cloud API: envio, templates, mídia, throttling
 │   │   ├── ai/               #     AI SDK v6 multi-provider + memória
 │   │   ├── builder/          #     motor do workflow builder
 │   │   ├── business/         #     regras de campanha, contato, settings
@@ -83,7 +83,7 @@ Decisões que sustentam o desenho: [ADR-001 fontes de verdade](ADR-001-fontes-de
 flowchart LR
     A[Campanha criada] --> B[Fila QStash]
     B --> C{"Throttling adaptativo<br/>por qualidade do número"}
-    C --> D[Meta Cloud API v24.0]
+    C --> D[Meta Cloud API]
     D --> E[WhatsApp do contato]
     D --> F["Webhook de status<br/>assinado HMAC"]
     F --> G[(Supabase)]

@@ -51,7 +51,7 @@ Nenhum agente (exceto `@aiox-master` e `@devops`) deve executar git push ou cria
 - Respeite `.editorconfig` e `.prettierrc.json` (2 espaços, LF, 100 chars).
 
 ### WhatsApp-specific
-- **Sempre v24.0** — nunca hardcode versão antiga da Meta Graph API.
+- **Sempre** — nunca hardcode versão antiga da Meta Graph API.
 - **Credentials via Supabase settings** — nunca hardcode tokens; env vars apenas como fallback.
 - **E.164 sem `+`** — formato obrigatório para telefones.
 - **Timeout + error mapping** em toda chamada à Meta API.

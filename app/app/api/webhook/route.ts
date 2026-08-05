@@ -1681,7 +1681,7 @@ export async function POST(request: NextRequest) {
                     try {
                     } catch {}
 
-                    await fetch(`https://graph.facebook.com/v21.0/${phoneNumberId}/messages`, {
+                    await fetch(`https://graph.facebook.com/v24.0/${phoneNumberId}/messages`, {
                       method: 'POST',
                       headers: {
                         Authorization: `Bearer ${token}`,

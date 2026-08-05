@@ -7,7 +7,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 Primeira versão pública do WhatsFlow Engine.
 
 ### Destaques
-- Disparo em massa via API Oficial do WhatsApp (Meta Cloud API v24.0) com fila QStash e throttling adaptativo por qualidade de número.
+- Disparo em massa via API Oficial do WhatsApp (Meta Cloud API) com fila QStash e throttling adaptativo por qualidade de número.
 - Inbox de atendimento com visual WhatsApp Business e IA multi-provider (AI SDK v6) com memória.
 - Templates HSM: criação, submissão e preview fiel.
 - Workflow builder visual (React Flow) para jornadas conversacionais.

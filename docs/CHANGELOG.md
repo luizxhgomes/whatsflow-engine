@@ -72,7 +72,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 - **`arsenal/produto/local-api-sunset.md`** — reformulado como documento **histórico** (sunset concluído em outubro/2025, estamos em abril/2026). Status "📜 HISTÓRICO" no topo + timeline atualizado marcando o sunset como concluído.
 - **Todos os 8 arquivos em `arsenal/tecnologia/`** ganharam bloco de metadata no topo:
   ```
-  > Last Verified: 2026-04-24 · API Version: v24.0 · Review cycle: trimestral
+  > Last Verified: 2026-04-24 · API Version: · Review cycle: trimestral
   > Cross-refs: [CROSS-REFERENCE.yaml] · [código de referência]
   ```
 - **`arsenal/README.md`** — reescrito refletindo 25 arquivos (era 24), seção "Consulta rápida" via CROSS-REFERENCE.yaml, explicação da metadata padronizada, review cycle formalizado.
@@ -128,7 +128,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 - **C4** — `AUTH_POLICY` canônico (ADR-003).
 
 ### Pending (Fases 4-5)
-- Atualizar arsenal para Cloud API v24.1+.
+- Atualizar arsenal para Cloud API.1+.
 - Criar cross-reference index entre arquivos do arsenal.
 - Decision tree (mermaid) para top 10 error codes.
 - Compliance playbooks por vertical (healthcare, fintech, e-commerce).

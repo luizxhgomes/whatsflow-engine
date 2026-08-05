@@ -87,7 +87,7 @@ import { http, HttpResponse } from 'msw'
 
 test('send template happy path', async () => {
   server.use(
-    http.post('https://graph.facebook.com/v24.0/:phoneId/messages', () =>
+    http.post('https://graph.facebook.com//:phoneId/messages', () =>
       HttpResponse.json({ messages: [{ id: 'wamid.test123' }] })
     )
   )

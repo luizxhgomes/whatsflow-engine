@@ -76,7 +76,7 @@
   <g font-family="Helvetica, Arial, sans-serif">
     <!-- eyebrow com filete -->
     <rect x="96" y="196" width="34" height="4" rx="2" fill="#25D366"/>
-    <text x="144" y="204" font-size="22" letter-spacing="4" fill="#00A884" font-weight="600">API OFICIAL · META CLOUD API v24</text>
+    <text x="144" y="204" font-size="22" letter-spacing="4" fill="#00A884" font-weight="600">API OFICIAL DO WHATSAPP · META CLOUD API</text>
     <text x="94" y="292" font-size="86" font-weight="700" fill="#FFFFFF">WhatsFlow Engine</text>
     <text x="96" y="352" font-size="33" fill="#A6F4C5">Disparo em massa com confiança e credibilidade</text>
     <!-- métricas do mapa, no lugar do CTA -->
