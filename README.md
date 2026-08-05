@@ -56,6 +56,24 @@ Padrão de código em todas as features:
 Page (App Router) → Hook (estado/TanStack Query) → Service (regra de negócio) → API Route (integração)
 ```
 
+## Estrutura do repositório
+
+```
+whatsflow-engine/
+├── app/                      # o sistema (Next.js 16)
+│   ├── app/                  #   34 páginas + 217 rotas de API
+│   ├── components/ hooks/ services/ lib/   # camadas (ver abaixo)
+│   ├── supabase/migrations/  #   schema (35+ tabelas, 7 domínios)
+│   └── infra/                #   Docker, VPS, deploy
+└── docs/
+    ├── architecture/         # ADRs + TOPOLOGIA.md (documento único de topologia)
+    ├── setup/                # replicação passo a passo
+    └── prd/ epics/ stories/  # metodologia story-driven
+```
+
+Topologia completa (física, lógica, execução, dados e replicação):
+**[`docs/architecture/TOPOLOGIA.md`](docs/architecture/TOPOLOGIA.md)**
+
 ## Componentes
 
 | Componente | Quantidade |

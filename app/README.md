@@ -1,4 +1,4 @@
-# WhatsFlow
+# WhatsFlow Engine
 
 > Automação de WhatsApp com IA integrada. Dispare campanhas, converse com clientes e deixe agentes de IA atenderem por você.
 
