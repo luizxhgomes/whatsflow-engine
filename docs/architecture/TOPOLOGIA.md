@@ -119,7 +119,27 @@ erDiagram
 `phone_suppressions` (opt-out) e `webhook_events` (dedup por assinatura) são as tabelas
 que materializam o disparo responsável descrito no README.
 
-## 5. Topologia de replicação
+## 5. Topologia visual — design system condicional (paleta WhatsApp)
+
+A identidade usa **apenas as cores** da marca WhatsApp — nunca a logo. Fonte da
+verdade: `app/lib/design-system/tokens/colors.ts` (escala `whatsapp`) e as
+variáveis condicionais de tema em `app/app/globals.css`.
+
+| Token | Hex | Papel |
+|---|---|---|
+| `whatsapp.400` | `#25D366` | Brand primary (dark mode primary, rings, mapa de disparos) |
+| `whatsapp.500` | `#00A884` | Accent moderno (hover, focus, unread) |
+| `whatsapp.600` | `#128C7E` | Teal clássico (light mode primary — AA sobre branco) |
+| `whatsapp.800` | `#075E54` | Teal escuro (subtle, texto sobre accent light) |
+| `whatsapp.100` | `#D9FDD3` | Balão enviado / accent light |
+| `whatsapp.950` | `#0B141A` | Fundo dark do chat e das artes |
+
+Condicionais de tema: light usa `--primary:#128C7E` (contraste AA com texto branco);
+dark usa `--primary:#25D366` com foreground `#0B141A`. Os balões (`--accent`)
+alternam `#D9FDD3`/`#005C4B`. A arte oficial do repo (`docs/assets/social-preview.svg`)
+segue esta paleta com a estrutura de **mapa de disparos** (hub → nós com check de entrega).
+
+## 6. Topologia de replicação
 
 O sistema é single-tenant por desenho: **uma instância = um número = um negócio.**
 Replicar é provisionar a topologia inteira de novo (Supabase + Meta + Upstash + Vercel),

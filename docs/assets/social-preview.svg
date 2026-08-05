@@ -1,16 +1,95 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-label="WhatsFlow Engine — mapa de disparos em massa via API Oficial do WhatsApp">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0b141a"/>
-      <stop offset="1" stop-color="#123c2b"/>
+    <radialGradient id="bg" cx="0.72" cy="0.42" r="1.1">
+      <stop offset="0" stop-color="#0F2620"/>
+      <stop offset="0.55" stop-color="#0B141A"/>
+      <stop offset="1" stop-color="#0B141A"/>
+    </radialGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#25D366" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#00A884" stop-opacity="0.25"/>
+    </linearGradient>
+    <radialGradient id="hubGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#25D366" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#25D366" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="hub" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#57D163"/>
+      <stop offset="1" stop-color="#128C7E"/>
     </linearGradient>
   </defs>
+
   <rect width="1280" height="640" fill="url(#bg)"/>
-  <circle cx="1080" cy="120" r="220" fill="#25D366" opacity="0.08"/>
-  <circle cx="140" cy="560" r="180" fill="#25D366" opacity="0.06"/>
-  <text x="96" y="290" font-family="Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#ffffff">WhatsFlow Engine</text>
-  <text x="96" y="360" font-family="Helvetica, Arial, sans-serif" font-size="34" fill="#a6f4c5">Disparo em massa com confiança — API Oficial do WhatsApp</text>
-  <text x="96" y="440" font-family="Helvetica, Arial, sans-serif" font-size="26" fill="#8696a0">Next.js 16 · Supabase · QStash · Meta Cloud API v24 · AI SDK v6</text>
-  <rect x="96" y="480" width="230" height="52" rx="26" fill="#25D366"/>
-  <text x="130" y="514" font-family="Helvetica, Arial, sans-serif" font-size="24" font-weight="600" fill="#0b141a">Replicável</text>
+
+  <!-- grade sutil -->
+  <g stroke="#128C7E" stroke-opacity="0.07">
+    <path d="M0 160H1280M0 320H1280M0 480H1280"/>
+    <path d="M320 0V640M640 0V640M960 0V640"/>
+  </g>
+
+  <!-- MAPA DE DISPAROS: hub central irradiando para nós -->
+  <g transform="translate(920,300)">
+    <circle r="190" fill="url(#hubGlow)"/>
+    <!-- arestas -->
+    <g stroke="url(#edge)" stroke-width="2.5" fill="none">
+      <path d="M0 0 L200 -170"/>
+      <path d="M0 0 L255 -60"/>
+      <path d="M0 0 L265 55"/>
+      <path d="M0 0 L195 165"/>
+      <path d="M0 0 L60 225"/>
+      <path d="M0 0 L-105 205"/>
+      <path d="M0 0 L155 -235"/>
+    </g>
+    <!-- pulsos nas arestas -->
+    <g fill="#25D366">
+      <circle cx="100" cy="-85" r="4"/>
+      <circle cx="170" cy="-40" r="4"/>
+      <circle cx="176" cy="37" r="4"/>
+      <circle cx="130" cy="110" r="4"/>
+      <circle cx="40" cy="150" r="4"/>
+      <circle cx="-70" cy="137" r="4"/>
+    </g>
+    <!-- nós destinatários: anel + check de entrega -->
+    <g>
+      <g transform="translate(200,-170)"><circle r="17" fill="#0B141A" stroke="#25D366" stroke-width="2.5"/><path d="M-6 0l4 4 8-8" stroke="#57D163" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+      <g transform="translate(255,-60)"><circle r="17" fill="#0B141A" stroke="#25D366" stroke-width="2.5"/><path d="M-6 0l4 4 8-8" stroke="#57D163" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+      <g transform="translate(265,55)"><circle r="17" fill="#0B141A" stroke="#00A884" stroke-width="2.5"/><path d="M-6 0l4 4 8-8" stroke="#00A884" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+      <g transform="translate(195,165)"><circle r="17" fill="#0B141A" stroke="#25D366" stroke-width="2.5"/><path d="M-6 0l4 4 8-8" stroke="#57D163" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+      <g transform="translate(60,225)"><circle r="17" fill="#0B141A" stroke="#128C7E" stroke-width="2.5"/><path d="M-6 0l4 4 8-8" stroke="#00A884" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+      <g transform="translate(-105,205)"><circle r="17" fill="#0B141A" stroke="#128C7E" stroke-width="2.5"/><path d="M-6 0l4 4 8-8" stroke="#00A884" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+      <g transform="translate(155,-235)"><circle r="17" fill="#0B141A" stroke="#00A884" stroke-width="2.5"/><path d="M-6 0l4 4 8-8" stroke="#00A884" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+    </g>
+    <!-- hub: fila/engine -->
+    <circle r="46" fill="url(#hub)"/>
+    <circle r="46" fill="none" stroke="#0B141A" stroke-width="3"/>
+    <circle r="58" fill="none" stroke="#25D366" stroke-opacity="0.4" stroke-width="1.5"/>
+    <circle r="72" fill="none" stroke="#25D366" stroke-opacity="0.18" stroke-width="1.5"/>
+    <!-- glifo de camadas (fila → disparo), neutro, sem logo -->
+    <g stroke="#0B141A" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M-14 8 L0 16 L14 8"/>
+      <path d="M-14 -1 L0 7 L14 -1"/>
+      <path d="M-14 -10 L0 -2 L14 -10"/>
+    </g>
+  </g>
+
+  <!-- TIPOGRAFIA -->
+  <g font-family="Helvetica, Arial, sans-serif">
+    <!-- eyebrow com filete -->
+    <rect x="96" y="196" width="34" height="4" rx="2" fill="#25D366"/>
+    <text x="144" y="204" font-size="22" letter-spacing="4" fill="#00A884" font-weight="600">API OFICIAL · META CLOUD API v24</text>
+    <text x="94" y="292" font-size="86" font-weight="700" fill="#FFFFFF">WhatsFlow Engine</text>
+    <text x="96" y="352" font-size="33" fill="#A6F4C5">Disparo em massa com confiança e credibilidade</text>
+    <!-- métricas do mapa, no lugar do CTA -->
+    <g font-size="21" fill="#8696A0">
+      <text x="96" y="432">fila durável</text>
+      <text x="96" y="470">throttling adaptativo</text>
+      <text x="96" y="508">status por mensagem</text>
+    </g>
+    <g fill="#25D366">
+      <circle cx="82" cy="425" r="4"/>
+      <circle cx="82" cy="463" r="4"/>
+      <circle cx="82" cy="501" r="4"/>
+    </g>
+    <text x="96" y="576" font-size="20" fill="#5C6B73">Next.js 16 · Supabase · QStash · AI SDK v6 · replicável do zero</text>
+  </g>
 </svg>

@@ -6,12 +6,13 @@
  * 2. Semânticas (semantic) - cores com significado (brand, status, etc)
  * 3. Componentes (component) - cores específicas de UI
  *
- * IDENTIDADE VISUAL v2:
- * - Brand Primary: Red (Crimson)
- * - Info/Processing: Purple (absorveu papel do blue)
+ * IDENTIDADE VISUAL v3 (paleta condicional WhatsApp):
+ * - Brand Primary: WhatsApp Green (#25D366) — apenas as CORES da marca, nunca a logo
+ * - Escala `whatsapp`: verde claro (#25D366) → accent moderno (#00A884) → teal (#128C7E) → teal escuro (#075E54) → chat dark (#0B141A)
+ * - Info/Processing: Purple (mantido)
  * - Error: Neutro (preto no light, branco no dark)
- * - Success: Green (semântico, mantido)
- * - Blue: REMOVIDO da paleta
+ * - Success: Green semântico (mantido, distinto do brand)
+ * - Red: rebaixado a primitiva (sem papel de brand)
  */
 
 // =============================================================================
@@ -50,7 +51,22 @@ export const primitiveColors = {
     950: '#052e16',
   },
 
-  // Red Scale (Brand Primary - Crimson)
+  // WhatsApp Scale (Brand Primary — cores oficiais da marca, uso condicional)
+  whatsapp: {
+    50: '#E9FBEF',
+    100: '#D9FDD3',   // balão enviado (light)
+    200: '#A8F0BE',
+    300: '#57D163',   // topo do gradiente do ícone
+    400: '#25D366',   // verde da logo (brand primary)
+    500: '#00A884',   // accent moderno (unread badge)
+    600: '#128C7E',   // teal clássico
+    700: '#0E7566',
+    800: '#075E54',   // teal escuro clássico
+    900: '#054C44',
+    950: '#0B141A',   // fundo dark do chat
+  },
+
+  // Red Scale (primitiva; sem papel de brand desde a v3)
   red: {
     50: '#fef2f2',
     100: '#fee2e2',
@@ -128,13 +144,13 @@ export const primitiveColors = {
 // =============================================================================
 
 export const semanticColors = {
-  // Brand (Red Crimson - nova identidade WhatsFlow v2)
+  // Brand (WhatsApp Green — identidade WhatsFlow v3, cores condicionais)
   brand: {
-    primary: primitiveColors.red[600],       // #dc2626
-    primaryHover: primitiveColors.red[700],   // #b91c1c
-    primaryActive: primitiveColors.red[800],  // #991b1b
-    primaryMuted: primitiveColors.red[600] + '1a', // 10% opacity
-    primarySubtle: primitiveColors.red[950],  // #450a0a
+    primary: primitiveColors.whatsapp[400],       // #25D366
+    primaryHover: primitiveColors.whatsapp[500],   // #00A884
+    primaryActive: primitiveColors.whatsapp[600],  // #128C7E
+    primaryMuted: primitiveColors.whatsapp[400] + '1a', // 10% opacity
+    primarySubtle: primitiveColors.whatsapp[800],  // #075E54
   },
 
   // Backgrounds
@@ -155,7 +171,7 @@ export const semanticColors = {
     muted: primitiveColors.zinc[500],
     disabled: primitiveColors.zinc[600],
     inverse: primitiveColors.zinc[950],
-    brand: primitiveColors.red[400],          // #f87171
+    brand: primitiveColors.whatsapp[300],      // #57D163
   },
 
   // Borders
@@ -163,8 +179,8 @@ export const semanticColors = {
     subtle: 'rgba(255, 255, 255, 0.05)',
     default: 'rgba(255, 255, 255, 0.10)',
     strong: 'rgba(255, 255, 255, 0.15)',
-    brand: primitiveColors.red[600],          // #dc2626
-    focus: primitiveColors.red[400],          // #f87171
+    brand: primitiveColors.whatsapp[400],      // #25D366
+    focus: primitiveColors.whatsapp[500],      // #00A884
   },
 
   // Status Colors
@@ -234,9 +250,9 @@ export const semanticColors = {
 
 export const nodeColors = {
   message: {
-    border: 'hsl(0, 72%, 51%)',              // Red brand
-    bg: 'hsl(0, 60%, 16%)',
-    accent: primitiveColors.red[600],
+    border: 'hsl(147, 70%, 49%)',           // WhatsApp green brand
+    bg: 'hsl(168, 34%, 14%)',
+    accent: primitiveColors.whatsapp[400],
   },
   ai: {
     border: 'hsl(262.1, 83.3%, 57.8%)',

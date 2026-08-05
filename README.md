@@ -1,6 +1,6 @@
 # WhatsFlow Engine
 
-![WhatsFlow Engine](docs/assets/social-preview.svg)
+![WhatsFlow Engine](docs/assets/social-preview.png)
 
 > Sistema organizacional de disparo em massa no WhatsApp com confiança e credibilidade — construído sobre o uso primário da API Oficial do WhatsApp (Meta Cloud API) e desenhado para ser replicado.
 
