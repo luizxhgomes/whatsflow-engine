@@ -1,4 +1,4 @@
-# Checklist de Deploy — whatsflow
+# Checklist de Deploy, whatsflow
 
 Lista verificável antes de promover para produção. `@devops` é o owner formal; qualquer agente pode executar o checklist como preparação, mas o push final é exclusivo de `@devops`.
 
@@ -82,8 +82,8 @@ Lista verificável antes de promover para produção. `@devops` é o owner forma
 ## Hotfix Path (emergência)
 
 1. Branch a partir de `main` (não de feature antiga).
-2. Fix minimal — um arquivo por problema.
-3. PR marcado `[HOTFIX]` — review acelerado por `@qa`.
+2. Fix minimal, um arquivo por problema.
+3. PR marcado `[HOTFIX]`, review acelerado por `@qa`.
 4. Merge + deploy imediatos.
 5. Entrada dedicada no `CHANGELOG.md` com severidade.
 6. Post-mortem em `docs/architecture/incident-{data}.md` dentro de 48h.
@@ -109,7 +109,7 @@ Caso necessário reverter:
 
 ## Referências
 
-- `.claude/rules/agent-authority.md` — matriz de delegação
-- `docs/architecture/ADR-003-auth-layering.md` — policy de auth
-- `docs/architecture/ADR-004-webhook-dedup.md` — dedup
+- `.claude/rules/agent-authority.md`: matriz de delegação
+- `docs/architecture/ADR-003-auth-layering.md`: policy de auth
+- `docs/architecture/ADR-004-webhook-dedup.md`: dedup
 - `docs/guides/running-migrations.md`

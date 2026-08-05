@@ -2,7 +2,7 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
-## [1.0.0] — 2026-08-05
+## [1.0.0], 2026-08-05
 
 Primeira versão pública do WhatsFlow Engine.
 

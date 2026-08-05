@@ -101,15 +101,15 @@ Single-tenant: no user accounts. Two auth mechanisms:
 
 - **Dashboard login**: `MASTER_PASSWORD` env var (bcrypt-hashed comparison)
 - **API routes**: `Authorization: Bearer <key>` or `X-API-Key: <key>` header
-  - `WHATSFLOW_API_KEY` — general API access
-  - `WHATSFLOW_ADMIN_KEY` — admin endpoints (`/api/database/*`, `/api/vercel/*`)
+  - `WHATSFLOW_API_KEY`: general API access
+  - `WHATSFLOW_ADMIN_KEY`: admin endpoints (`/api/database/*`, `/api/vercel/*`)
   - Public (no auth): `/api/webhook`, `/api/health`, `/api/flows`
 
-No middleware.ts — auth enforced per-route via `verifyApiKey()` from `lib/auth.ts`.
+No middleware.ts, auth enforced per-route via `verifyApiKey()` from `lib/auth.ts`.
 
 ### Supabase Client Types
 
-Three client patterns — use the right one for the context:
+Three client patterns, use the right one for the context:
 
 ```typescript
 // API Routes (server-side, bypasses RLS)
@@ -277,4 +277,4 @@ ContactStatus: OPT_IN | OPT_OUT | UNKNOWN
 
 - **Edge cache flash-back**: Deleted items may momentarily reappear due to Vercel 10s TTL cache
 - **Payment alerts**: Auto-shown on error 131042, auto-dismissed when delivery succeeds after fix
-- **Null Supabase clients**: `getSupabaseAdmin()` and `getSupabaseBrowser()` return `null` when not configured — callers must handle this for the install wizard flow
+- **Null Supabase clients**: `getSupabaseAdmin()` and `getSupabaseBrowser()` return `null` when not configured: callers must handle this for the install wizard flow

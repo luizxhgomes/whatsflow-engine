@@ -17,6 +17,6 @@ Obrigado pelo interesse em contribuir com o WhatsFlow Engine.
 
 ## Padrões
 - Código em inglês; documentação em pt-BR.
-- Arquitetura Page → Hook → Service → API Route — não crie atalhos.
+- Arquitetura Page → Hook → Service → API Route, não crie atalhos.
 - Todo código novo entra com teste.
 - Nenhum segredo em código: use variáveis de ambiente e atualize `app/.env.example`.

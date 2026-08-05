@@ -111,11 +111,11 @@ test('send template happy path', async () => {
 ### Casos de Erro Obrigatórios
 
 Para cada endpoint que chama Meta, testar:
-- [ ] `130429` (rate limit) — deve retornar 429 e agendar retry.
-- [ ] `131051` (sem WhatsApp) — deve marcar contato como inválido.
-- [ ] `131042` (pagamento) — deve criar alerta em `account_alerts`.
-- [ ] `132000` (template param) — deve retornar 400 com mensagem clara.
-- [ ] Timeout — deve fail com retry habilitado.
+- [ ] `130429` (rate limit), deve retornar 429 e agendar retry.
+- [ ] `131051` (sem WhatsApp), deve marcar contato como inválido.
+- [ ] `131042` (pagamento), deve criar alerta em `account_alerts`.
+- [ ] `132000` (template param), deve retornar 400 com mensagem clara.
+- [ ] Timeout, deve fail com retry habilitado.
 
 ## Webhook Testing
 
@@ -203,9 +203,9 @@ npm run test:stress:local
 ```
 
 Configurar via `tests/stress/run-stress-test.ts`:
-- `concurrency` — número de requests simultâneos.
-- `duration` — tempo total.
-- `targetRps` — requests per second.
+- `concurrency`: número de requests simultâneos.
+- `duration`: tempo total.
+- `targetRps`: requests per second.
 
 Output: relatório com p50/p95/p99 e contagem de duplicatas detectadas.
 
@@ -215,7 +215,7 @@ Depois de cada deploy:
 
 1. Enviar template de teste para número interno whitelistado.
 2. Conferir delivery status no dashboard (SENT → DELIVERED → READ).
-3. Responder a mensagem — conferir webhook inbound.
+3. Responder a mensagem, conferir webhook inbound.
 4. Abrir UI `/dashboard/campaigns` e verificar contadores.
 5. Rodar `npm run test:e2e:whatsapp` contra ambiente de staging.
 
@@ -235,4 +235,4 @@ Depois de cada deploy:
 - `arsenal/tecnologia/message-types.md`
 - `.claude/rules/whatsapp-api-reference.md`
 - `.claude/rules/whatsapp-message-patterns.md`
-- `app/tests/` — exemplos existentes
+- `app/tests/`: exemplos existentes

@@ -1,6 +1,6 @@
-# ADR-004 — Webhook Deduplication e Idempotência
+# ADR-004, Webhook Deduplication e Idempotência
 
-**Status:** Proposed (crítico — bloqueado por Fase 0 do repo-sweep)
+**Status:** Proposed (crítico, bloqueado por Fase 0 do repo-sweep)
 **Data:** 2026-04-24
 **Contexto:** Fase 0 do repo-sweep-plan (achado C6)
 
@@ -25,11 +25,11 @@ Consequências observáveis:
 
 Separar **claim** de **commit**:
 
-1. **Phase 1 — Claim:** Redis `SET NX` com chave `webhook:claim:{message_id}:{status}` e TTL curto (5 min).
+1. **Phase 1, Claim:** Redis `SET NX` com chave `webhook:claim:{message_id}:{status}` e TTL curto (5 min).
    - Se `SET NX` falha → abortar (já claimed).
    - Se sucede → prosseguir.
-2. **Phase 2 — Process + Commit:** executa business logic, commita no Supabase usando **upsert idempotente** (unique constraint em `(message_id, status_type)`).
-3. **Phase 3 — Mark Done:** Redis `SET` (sem NX) com chave `webhook:done:{message_id}:{status}` e TTL longo (24h). Sinaliza que processamento terminou.
+2. **Phase 2, Process + Commit:** executa business logic, commita no Supabase usando **upsert idempotente** (unique constraint em `(message_id, status_type)`).
+3. **Phase 3, Mark Done:** Redis `SET` (sem NX) com chave `webhook:done:{message_id}:{status}` e TTL longo (24h). Sinaliza que processamento terminou.
 
 ### Supabase como Source of Truth
 
@@ -51,7 +51,7 @@ Upserts usam `ON CONFLICT DO NOTHING` para status terminais (`delivered`, `read`
 
 ### Múltiplos Status para Mesma Mensagem
 
-Meta envia eventos separados: `sent` → `delivered` → `read` → `failed`. Chave de dedup **inclui status** (`webhook:claim:{message_id}:{status}`) — cada transição é um evento idempotente separado.
+Meta envia eventos separados: `sent` → `delivered` → `read` → `failed`. Chave de dedup **inclui status** (`webhook:claim:{message_id}:{status}`), cada transição é um evento idempotente separado.
 
 ## Consequências
 
@@ -74,16 +74,16 @@ Meta envia eventos separados: `sent` → `delivered` → `read` → `failed`. Ch
 ## Alternativas Consideradas
 
 ### A. Manter `SET NX` com TTL único (status quo)
-**Rejeitada** — race condition persiste.
+**Rejeitada**, race condition persiste.
 
 ### B. Lock distribuído via Redlock
-**Rejeitada** — complexidade alta demais para o ganho; Upstash Redis (plano single-region) não é ideal para Redlock correto.
+**Rejeitada**, complexidade alta demais para o ganho; Upstash Redis (plano single-region) não é ideal para Redlock correto.
 
 ### C. Queue com dedup nativo (QStash dedupIds)
-**Avaliada** — aplicável apenas a mensagens que entram na queue, não a webhooks diretos do Meta. Complementar, não substitui.
+**Avaliada**, aplicável apenas a mensagens que entram na queue, não a webhooks diretos do Meta. Complementar, não substitui.
 
 ### D. Database-only (sem Redis)
-**Rejeitada** — alta latência para checks síncronos em rota de webhook (Meta tem timeout de 5s).
+**Rejeitada**, alta latência para checks síncronos em rota de webhook (Meta tem timeout de 5s).
 
 ## Plano de Implementação
 

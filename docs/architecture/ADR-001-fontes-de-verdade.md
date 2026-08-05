@@ -1,4 +1,4 @@
-# ADR-001 — Fontes de Verdade Canônicas para Agents, Rules e Registry
+# ADR-001, Fontes de Verdade Canônicas para Agents, Rules e Registry
 
 **Status:** Proposed
 **Data:** 2026-04-24
@@ -8,10 +8,10 @@
 
 A auditoria identificou que o repositório mantém definições de agentes AIOX em **3 locais distintos**, gerando risco de drift:
 
-1. `.claude/commands/AIOX/agents/*.md` — 14 arquivos (usados pelos slash-commands)
-2. `.aiox-core/development/agents/*.md` + `MEMORY.md` — 10 agentes com memória
-3. `.claude/CLAUDE.md` — tabela inline na seção "Sistema de Agentes"
-4. `AGENTS.md` (root) — shortcuts para Codex CLI
+1. `.claude/commands/AIOX/agents/*.md`: 14 arquivos (usados pelos slash-commands)
+2. `.aiox-core/development/agents/*.md` + `MEMORY.md`: 10 agentes com memória
+3. `.claude/CLAUDE.md`: tabela inline na seção "Sistema de Agentes"
+4. `AGENTS.md` (root): shortcuts para Codex CLI
 
 Além disso:
 - `entity-registry.yaml` está malformado (17k linhas, `usedBy` incompletos)
@@ -20,15 +20,15 @@ Além disso:
 
 ## Decisão
 
-### Agents — Single Source of Truth
+### Agents, Single Source of Truth
 
-1. **Canônico:** `.aiox-core/development/agents/{id}.md` — contém persona, commands, dependencies. É o **único** lugar autoritativo.
+1. **Canônico:** `.aiox-core/development/agents/{id}.md`: contém persona, commands, dependencies. É o **único** lugar autoritativo.
 2. **Shortcuts:** `.claude/commands/AIOX/agents/*.md` são **aliases finos** que apenas invocam o arquivo canônico. Não duplicam conteúdo.
-3. **Codex:** `AGENTS.md` (root) é gerado/mantido pelo template em `.aiox-core/product/templates/ide-rules/codex-rules.md` — serve apenas ao Codex CLI e referencia `.aiox-core/development/agents/` como fonte.
+3. **Codex:** `AGENTS.md` (root) é gerado/mantido pelo template em `.aiox-core/product/templates/ide-rules/codex-rules.md`: serve apenas ao Codex CLI e referencia `.aiox-core/development/agents/` como fonte.
 4. **CLAUDE.md:** a tabela na seção "Sistema de Agentes" é **informativa apenas** e deve referenciar `.aiox-core/development/agents/` como fonte. Não pode divergir.
 5. Introduzir `.aiox-core/development/agents/MANIFEST.yaml` como índice machine-readable com: `id`, `persona`, `path`, `memoryPath`, `exclusiveOps`, `deprecated`. Usado por validadores e sync-scripts.
 
-### Rules — Consolidação e Frontmatter
+### Rules, Consolidação e Frontmatter
 
 1. Rules WhatsApp (`whatsapp-api-reference.md`, `whatsapp-message-patterns.md`, `whatsapp-compliance.md`) permanecem **separadas por domínio** (API spec vs padrões vs compliance), mas:
    - Remover duplicações de conteúdo (regras 24h, categorias de template, opt-in).
@@ -60,7 +60,7 @@ Além disso:
 ### Negativas
 - Requer 1 sprint de migração (reescrita dos shortcuts em `.claude/commands/AIOX/agents/` para aliases finos).
 - CLAUDE.md e AGENTS.md precisam de sync automatizado (ou risco de drift volta).
-- Rules WhatsApp consolidadas mudam URLs/âncoras — referências externas podem quebrar (mitigável via redirects de markdown).
+- Rules WhatsApp consolidadas mudam URLs/âncoras, referências externas podem quebrar (mitigável via redirects de markdown).
 
 ### Riscos
 - Se `MANIFEST.yaml` ficar desatualizado, vira nova fonte de verdade drift. Mitigação: validator em CI (`*validate-agents`).
@@ -75,7 +75,7 @@ Além disso:
 **Rejeitada** porque slash-commands precisam de arquivos nesses paths para serem descobríveis pelo Claude Code. A solução é fazê-los finos.
 
 ### C. Monorepo com workspace manifest (`pnpm-workspace.yaml`)
-**Fora de escopo** — o problema é de docs/config, não de build.
+**Fora de escopo**, o problema é de docs/config, não de build.
 
 ## Plano de Implementação
 
@@ -92,5 +92,5 @@ Vinculado à Fase 1 do `docs/plans/2026-04-24-repo-sweep-plan.md`:
 
 - `.claude/rules/agent-authority.md`
 - `.claude/rules/agent-memory-imports.md`
-- `.aiox-core/constitution.md` (Artigo II — Agent Authority)
+- `.aiox-core/constitution.md` (Artigo II: Agent Authority)
 - `docs/plans/2026-04-24-repo-sweep-plan.md` (Fase 1)

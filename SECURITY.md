@@ -2,7 +2,7 @@
 
 ## Segredos
 Nenhum segredo é versionado neste repositório. Todo credenciamento acontece via
-variáveis de ambiente — o contrato completo está em `app/.env.example`.
+variáveis de ambiente, o contrato completo está em `app/.env.example`.
 Arquivos `.env*` são bloqueados pelo `.gitignore`.
 
 ## Webhooks

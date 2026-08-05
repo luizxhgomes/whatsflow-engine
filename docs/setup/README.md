@@ -1,4 +1,4 @@
-# Setup — do zero ao primeiro disparo
+# Setup, do zero ao primeiro disparo
 
 Guia de provisionamento completo do WhatsFlow Engine. Tempo estimado: 30 minutos.
 
@@ -9,7 +9,7 @@ Guia de provisionamento completo do WhatsFlow Engine. Tempo estimado: 30 minutos
 
 ## 2. Meta WhatsApp Cloud API (API Oficial)
 1. Crie um app em https://developers.facebook.com (tipo Business).
-2. Adicione o produto **WhatsApp** e conecte (ou crie) o WABA — WhatsApp Business Account.
+2. Adicione o produto **WhatsApp** e conecte (ou crie) o WABA, WhatsApp Business Account.
 3. Registre um número de telefone e anote o `Phone Number ID`.
 4. Gere um **token permanente** via System User no Business Manager (escopos `whatsapp_business_messaging`, `whatsapp_business_management`).
 5. Configure o webhook: URL `https://SEU_DOMINIO/api/webhook`, verify token = `WEBHOOK_VERIFY_TOKEN` do seu `.env`; assine os campos `messages` e `message_template_status_update`.
@@ -28,6 +28,6 @@ cp app/.env.example app/.env
 - **Docker/VPS:** veja `app/infra/DEPLOY-GUIDE.md` e `app/infra/setup-vps.sh`.
 
 ## 6. Verificação
-1. Acesse `/api/health` — deve responder OK.
+1. Acesse `/api/health`, deve responder OK.
 2. Use a página de diagnóstico Meta no dashboard para validar token, número e webhook.
 3. Envie um template de teste para o seu próprio número.

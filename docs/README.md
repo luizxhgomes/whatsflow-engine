@@ -1,4 +1,4 @@
-# docs/ — Navegação
+# docs/, Navegação
 
 Este diretório consolida documentação do projeto **api-oficial-core** (WhatsApp Business Intelligence Hub).
 
@@ -36,4 +36,4 @@ Este diretório consolida documentação do projeto **api-oficial-core** (WhatsA
 
 ## Referências de Planos Ativos
 
-- [`plans/2026-04-24-repo-sweep-plan.md`](./plans/2026-04-24-repo-sweep-plan.md) — varredura, limpeza e reorganização do repositório (5 fases).
+- [`plans/2026-04-24-repo-sweep-plan.md`](./plans/2026-04-24-repo-sweep-plan.md): varredura, limpeza e reorganização do repositório (5 fases).

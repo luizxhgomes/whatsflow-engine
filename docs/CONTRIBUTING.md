@@ -4,13 +4,13 @@ Guia para contribuir com `api-oficial-core`. Leia antes de abrir qualquer PR.
 
 ## Princípios
 
-1. **Story-Driven Development** — todo trabalho começa como story em `docs/stories/`. Não existe "patch avulso".
-2. **Constitution first** — artefatos da Constitution (`.aiox-core/constitution.md`) são inegociáveis.
-3. **IDS (Incremental Development System)** — antes de criar algo novo, rode `*ids check {intent}` para descobrir se já existe algo reutilizável.
-4. **No Invention** — não invente requisitos; tudo rastreável a FR/NFR/CON/research.
-5. **Agent Authority** — delegação tem regras formais em `.claude/rules/agent-authority.md`. Em particular: `git push`, `gh pr create/merge`, MCP management → **exclusivo** de `@devops`.
+1. **Story-Driven Development**: todo trabalho começa como story em `docs/stories/`. Não existe "patch avulso".
+2. **Constitution first**: artefatos da Constitution (`.aiox-core/constitution.md`) são inegociáveis.
+3. **IDS (Incremental Development System)**: antes de criar algo novo, rode `*ids check {intent}` para descobrir se já existe algo reutilizável.
+4. **No Invention**: não invente requisitos; tudo rastreável a FR/NFR/CON/research.
+5. **Agent Authority**: delegação tem regras formais em `.claude/rules/agent-authority.md`. Em particular: `git push`, `gh pr create/merge`, MCP management → **exclusivo** de `@devops`.
 
-## Fluxo de Trabalho (SDC — Story Development Cycle)
+## Fluxo de Trabalho (SDC, Story Development Cycle)
 
 ```
 @sm *draft           → story.md (Draft)
@@ -42,8 +42,8 @@ Nenhum agente (exceto `@aiox-master` e `@devops`) deve executar git push ou cria
 ### Geral
 - **Idioma:** código em inglês; comentários e UI em pt-BR.
 - **Edite existentes > crie novos**. Reuso de componentes é preferencial.
-- **Sem comentários redundantes** — só explique o "porquê" não-óbvio.
-- **Trate erros explicitamente** — nada de `catch (e) {}` silencioso.
+- **Sem comentários redundantes**: só explique o "porquê" não-óbvio.
+- **Trate erros explicitamente**: nada de `catch (e) {}` silencioso.
 
 ### TypeScript / JavaScript
 - `strict: true`; sem `any` implícito.
@@ -51,11 +51,11 @@ Nenhum agente (exceto `@aiox-master` e `@devops`) deve executar git push ou cria
 - Respeite `.editorconfig` e `.prettierrc.json` (2 espaços, LF, 100 chars).
 
 ### WhatsApp-specific
-- **Sempre** — nunca hardcode versão antiga da Meta Graph API.
-- **Credentials via Supabase settings** — nunca hardcode tokens; env vars apenas como fallback.
-- **E.164 sem `+`** — formato obrigatório para telefones.
+- **Sempre**: nunca hardcode versão antiga da Meta Graph API.
+- **Credentials via Supabase settings**: nunca hardcode tokens; env vars apenas como fallback.
+- **E.164 sem `+`**: formato obrigatório para telefones.
 - **Timeout + error mapping** em toda chamada à Meta API.
-- **Webhook dedup** — Redis SET NX + TTL; nunca processar mesma mensagem duas vezes.
+- **Webhook dedup**: Redis SET NX + TTL; nunca processar mesma mensagem duas vezes.
 
 Referências: [`../.claude/rules/whatsapp-*.md`](../.claude/rules/).
 

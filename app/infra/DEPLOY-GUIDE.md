@@ -1,4 +1,4 @@
-# WhatsFlow — Guia de Deploy no VPS example.com
+# WhatsFlow, Guia de Deploy no VPS example.com
 
 ## Arquitetura no VPS
 
@@ -56,12 +56,12 @@ No repositorio do WhatsFlow no GitHub, va em Settings → Secrets → Actions e 
 
 ## Passo 4: Primeiro Deploy
 
-Opcao A — Via GitHub Actions (automatico):
+Opcao A, Via GitHub Actions (automatico):
 ```bash
 git push origin main
 ```
 
-Opcao B — Manual no VPS:
+Opcao B, Manual no VPS:
 ```bash
 # SSH no VPS
 ssh root@SEU_IP_VPS

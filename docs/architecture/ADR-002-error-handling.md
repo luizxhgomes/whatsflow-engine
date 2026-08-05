@@ -1,4 +1,4 @@
-# ADR-002 — Módulo Canônico de Error Handling WhatsApp
+# ADR-002, Módulo Canônico de Error Handling WhatsApp
 
 **Status:** Proposed
 **Data:** 2026-04-24
@@ -63,7 +63,7 @@ export class WhatsAppApiError extends Error {
 ### Regras de Uso
 
 1. **Catching errors da Meta API:** sempre passar por `mapWhatsAppError(code)` antes de repropagar.
-2. **Lançamento controlado:** usar `throw new WhatsAppApiError(mapped, raw)` — nunca `throw new Error("erro 131042")`.
+2. **Lançamento controlado:** usar `throw new WhatsAppApiError(mapped, raw)`: nunca `throw new Error("erro 131042")`.
 3. **Retry decisions:** sempre checar `.retryable` do mapped; nunca tomar decisão de retry olhando apenas o código numérico.
 4. **UI:** sempre renderizar `.userMessage`; nunca expor `.message` (interno).
 5. **Alertas/monitoramento:** usar `.category` como dimension primária.

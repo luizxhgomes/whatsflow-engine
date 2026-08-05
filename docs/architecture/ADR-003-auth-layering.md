@@ -1,6 +1,6 @@
-# ADR-003 — Auth Layering nos Endpoints do WhatsFlow
+# ADR-003, Auth Layering nos Endpoints do WhatsFlow
 
-**Status:** Proposed (crítico — bloqueado por Fase 0 do repo-sweep)
+**Status:** Proposed (crítico, bloqueado por Fase 0 do repo-sweep)
 **Data:** 2026-04-24
 **Contexto:** Fase 0 + Fase 5 do repo-sweep-plan
 
@@ -65,7 +65,7 @@ Toda rota em `app/app/api/**` deve se declarar em **uma** das 3 categorias:
 Rotas `PUBLIC` que recebem webhooks (Meta, QStash, Upstash) **devem** verificar assinatura HMAC antes de processar:
 
 - Meta webhooks: HMAC-SHA256 com `META_APP_SECRET` via `timingSafeEqual`.
-- **Fail-close obrigatório:** se o secret não estiver configurado, retornar 503 (serviço indisponível) — nunca 200 (achado C5).
+- **Fail-close obrigatório:** se o secret não estiver configurado, retornar 503 (serviço indisponível): nunca 200 (achado C5).
 - QStash: verificação nativa do SDK Upstash.
 
 ### Rate Limit como Segunda Camada
@@ -84,7 +84,7 @@ Mesmo rotas autenticadas devem ter rate limit para mitigar abuse de credencial:
 
 ### Negativas
 - Refactor cirúrgico de 60+ arquivos.
-- Clientes externos (se existirem) precisam passar header — quebra se chamavam sem.
+- Clientes externos (se existirem) precisam passar header, quebra se chamavam sem.
 - Testes de integração existentes precisam ajuste para passar chave.
 
 ### Riscos

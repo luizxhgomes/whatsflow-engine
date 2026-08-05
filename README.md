@@ -2,7 +2,7 @@
 
 ![WhatsFlow Engine](docs/assets/social-preview.png)
 
-> Sistema organizacional de disparo em massa no WhatsApp com confiança e credibilidade — construído sobre o uso primário da API Oficial do WhatsApp (Meta Cloud API) e desenhado para ser replicado.
+> Sistema organizacional de disparo em massa no WhatsApp com confiança e credibilidade, construído sobre o uso primário da API Oficial do WhatsApp (Meta Cloud API) e desenhado para ser replicado.
 
 ![tests](https://img.shields.io/badge/tests-3.5k%2B-brightgreen) ![license](https://img.shields.io/badge/license-MIT-green) ![release](https://img.shields.io/badge/release-v1.0.0-25D366) ![PRs](https://img.shields.io/badge/PRs-welcome-blue) ![idioma](https://img.shields.io/badge/docs-PT--BR-009B3A) ![stack](https://img.shields.io/badge/Next.js%2016-React%2019-black)
 
@@ -12,7 +12,7 @@ Criado e mantido por **Luiz Henrique** ([@luizxhgomes](https://github.com/luizxh
 
 ## Visão geral
 
-O WhatsFlow Engine é um SaaS single-tenant completo de automação de marketing e atendimento no WhatsApp. Ele resolve o problema central do disparo em massa: fazer campanhas em escala **sem queimar o número, sem banimento e sem gambiarras** — porque toda a comunicação passa exclusivamente pela **API Oficial do WhatsApp (Meta Cloud API)**, nunca por bibliotecas não-oficiais de engenharia reversa.
+O WhatsFlow Engine é um SaaS single-tenant completo de automação de marketing e atendimento no WhatsApp. Ele resolve o problema central do disparo em massa: fazer campanhas em escala **sem queimar o número, sem banimento e sem gambiarras**, porque toda a comunicação passa exclusivamente pela **API Oficial do WhatsApp (Meta Cloud API)**, nunca por bibliotecas não-oficiais de engenharia reversa.
 
 O que o torna interessante como referência de construção de sistema é a orquestração ponta a ponta: fila durável com QStash, throttling adaptativo por qualidade de número, templates aprovados pela Meta, rastreio de status por mensagem (enviada, entregue, lida, falhou) e um workflow builder visual para jornadas conversacionais. A camada de IA (Vercel AI SDK v6, multi-provider) responde conversas no inbox com memória persistente.
 
@@ -50,7 +50,7 @@ flowchart LR
         A["Campanha<br/>criada"] --> B["Fila durável<br/>QStash"]
         B --> C{"Throttling<br/>adaptativo"}
     end
-    subgraph ENV[" Envio — API Oficial "]
+    subgraph ENV[" Envio pela API Oficial "]
         C --> D["Meta Cloud API"]
         D --> E["WhatsApp<br/>do contato"]
     end
@@ -71,7 +71,7 @@ flowchart LR
     style H fill:#0F2620,stroke:#25D366,color:#D9FDD3
 ```
 
-O laço tracejado é o mecanismo de credibilidade: as métricas de qualidade do número realimentam o throttling — o sistema desacelera sozinho antes de comprometer a reputação do número.
+O laço tracejado é o mecanismo de credibilidade: as métricas de qualidade do número realimentam o throttling, o sistema desacelera sozinho antes de comprometer a reputação do número.
 
 Padrão de código em todas as features:
 
@@ -116,11 +116,11 @@ Next.js 16 (App Router, Turbopack) · React 19 · TypeScript 5.7 · Supabase (Po
 
 ## Replique em 30 minutos
 
-1. **Supabase** — crie um projeto e rode as migrations de `app/supabase/migrations/`.
-2. **Meta** — crie um app WhatsApp Business, conecte o WABA, gere token permanente e configure o webhook (guia em [`docs/setup/`](docs/setup/README.md)).
-3. **Upstash** — crie o QStash e o Redis, copie tokens.
-4. **Variáveis** — `cp app/.env.example app/.env` e preencha.
-5. **Deploy** — Vercel (recomendado) ou Docker/VPS (`app/infra/`). O installer embutido (`/api/installer`) automatiza o provisionamento.
+1. **Supabase**: crie um projeto e rode as migrations de `app/supabase/migrations/`.
+2. **Meta**: crie um app WhatsApp Business, conecte o WABA, gere token permanente e configure o webhook (guia em [`docs/setup/`](docs/setup/README.md)).
+3. **Upstash**: crie o QStash e o Redis, copie tokens.
+4. **Variáveis**: `cp app/.env.example app/.env` e preencha.
+5. **Deploy**: Vercel (recomendado) ou Docker/VPS (`app/infra/`). O installer embutido (`/api/installer`) automatiza o provisionamento.
 
 Guias completos: [`docs/setup/README.md`](docs/setup/README.md) · [`docs/guides/`](docs/guides/) · [`app/infra/DEPLOY-GUIDE.md`](app/infra/DEPLOY-GUIDE.md)
 
@@ -128,9 +128,9 @@ Guias completos: [`docs/setup/README.md`](docs/setup/README.md) · [`docs/guides
 
 Três documentos sustentam o lema do sistema, escritos a partir de auditoria do código real:
 
-- [`docs/seguranca/GARANTIAS-ANTI-BLOQUEIO.md`](docs/seguranca/GARANTIAS-ANTI-BLOQUEIO.md) — playbook preventivo contra bloqueios da Meta (opt-in, aquecimento, tiers, throttling por qualidade, LGPD) com checklist pré-campanha.
-- [`docs/seguranca/GARANTIAS-DE-ENTREGA.md`](docs/seguranca/GARANTIAS-DE-ENTREGA.md) — o que o sistema garante no disparo (HMAC, dedup, fila, retry, status por mensagem) e como testar cada garantia.
-- [`docs/seguranca/CONTRATO-API-OFICIAL.md`](docs/seguranca/CONTRATO-API-OFICIAL.md) — mapa das correspondências com a Meta Cloud API: tipos de mensagem, janela de 24 horas e códigos de erro.
+- [`docs/seguranca/GARANTIAS-ANTI-BLOQUEIO.md`](docs/seguranca/GARANTIAS-ANTI-BLOQUEIO.md): playbook preventivo contra bloqueios da Meta (opt-in, aquecimento, tiers, throttling por qualidade, LGPD) com checklist pré-campanha.
+- [`docs/seguranca/GARANTIAS-DE-ENTREGA.md`](docs/seguranca/GARANTIAS-DE-ENTREGA.md): o que o sistema garante no disparo (HMAC, dedup, fila, retry, status por mensagem) e como testar cada garantia.
+- [`docs/seguranca/CONTRATO-API-OFICIAL.md`](docs/seguranca/CONTRATO-API-OFICIAL.md): mapa das correspondências com a Meta Cloud API: tipos de mensagem, janela de 24 horas e códigos de erro.
 
 A jornada completa de implantação white-label vive em [`docs/onboarding/`](docs/onboarding/README.md): 5 fases com gates verificáveis, do install à operação contínua, mais o roadmap estratégico priorizado.
 
@@ -140,9 +140,9 @@ Desenvolvimento story-driven: PRD → epics → stories com acceptance criteria 
 
 ## Regras inegociáveis
 
-1. Somente API Oficial da Meta — nenhuma dependência de protocolo não-oficial.
-2. Nenhum segredo no repositório — tudo via variáveis de ambiente (`.env.example` documenta o contrato).
-3. Disparo responsável — throttling, opt-in e templates aprovados não são opcionais.
+1. Somente API Oficial da Meta, nenhuma dependência de protocolo não-oficial.
+2. Nenhum segredo no repositório, tudo via variáveis de ambiente (`.env.example` documenta o contrato).
+3. Disparo responsável, throttling, opt-in e templates aprovados não são opcionais.
 4. Todo código novo entra com teste.
 
 ## Contribuindo
@@ -155,4 +155,4 @@ Veja [CONTRIBUTING.md](CONTRIBUTING.md). Issues e PRs são bem-vindos.
 
 ## Autor
 
-**Luiz Henrique** — engenharia de sistemas de IA e automação · [@luizxhgomes](https://github.com/luizxhgomes)
+**Luiz Henrique**, engenharia de sistemas de IA e automação · [@luizxhgomes](https://github.com/luizxhgomes)

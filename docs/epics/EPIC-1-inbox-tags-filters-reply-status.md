@@ -7,13 +7,13 @@ Evoluir o modulo Inbox do WhatsFlow para suportar gerenciamento de tags de leads
 ## Background
 
 O Inbox atual possui filtros basicos (status open/closed, mode bot/human, labels de conversa e busca textual). A necessidade e ampliar para um sistema completo de:
-1. **Tags de lead** — classificacao permanente do contato (CRM), separadas das labels de conversa
-2. **Filtros avancados** — 12+ criterios (etiqueta, telefone, nome, campanha, data, area code, campo personalizado, admin atribuido)
-3. **Reply status** — separacao visual entre conversas aguardando resposta e ja respondidas
+1. **Tags de lead**: classificacao permanente do contato (CRM), separadas das labels de conversa
+2. **Filtros avancados**: 12+ criterios (etiqueta, telefone, nome, campanha, data, area code, campo personalizado, admin atribuido)
+3. **Reply status**: separacao visual entre conversas aguardando resposta e ja respondidas
 
 ## Architectural Decisions (from @architect validation)
 
-- Tags (CRM/lead) sao entidades separadas de Labels (conversa) — tabelas `tags` + `contact_tags`
+- Tags (CRM/lead) sao entidades separadas de Labels (conversa), tabelas `tags` + `contact_tags`
 - `reply_status` como campo derivado em `inbox_conversations`, atualizado automaticamente
 - Filtros composable via Supabase query builder
 - Campos novos: `assigned_to`, `campaign_id`, `source`, `reply_status` em `inbox_conversations`
@@ -50,5 +50,5 @@ Story 1.1 (Tag System) → Story 1.2 (Advanced Filters) → Story 1.3 (Reply Sta
 Story 1.1 e pre-requisito para 1.2 (tags precisam existir para serem filtradas). Story 1.3 e independente mas sequenciada por prioridade.
 
 ---
-*Epic created by @pm (Morgan) — 2026-03-19*
+*Epic created by @pm (Morgan), 2026-03-19*
 *Architecture validated by @architect (Aria)*

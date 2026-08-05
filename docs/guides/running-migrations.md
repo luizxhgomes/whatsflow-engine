@@ -10,14 +10,14 @@ Todas as migrations vivem em:
 app/supabase/migrations/
 ```
 
-Nome do arquivo: `{timestamp}_{slug}.sql` — timestamp no formato `YYYYMMDDHHMMSS`.
+Nome do arquivo: `{timestamp}_{slug}.sql`, timestamp no formato `YYYYMMDDHHMMSS`.
 
 ## Pré-requisitos
 
 - Supabase CLI instalado (`brew install supabase/tap/supabase`).
 - Credenciais de projeto no `.env` (nunca commit):
-  - `SUPABASE_DB_URL` — URL direta do Postgres (formato `postgresql://postgres:<pwd>@<host>:5432/postgres`).
-  - `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY` — para conferência via SDK.
+  - `SUPABASE_DB_URL`: URL direta do Postgres (formato `postgresql://postgres:<pwd>@<host>:5432/postgres`).
+  - `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY`: para conferência via SDK.
 - Permissão para rodar `supabase db push` no projeto.
 
 ## Fluxo Padrão (Desenvolvimento)
@@ -67,7 +67,7 @@ npx supabase gen types typescript --project-id <id> > lib/database.types.ts
 
 - Rodar suite: `npm run test`
 - Conferir RLS se a migration afeta políticas.
-- Conferir `outputFileTracingIncludes` no `next.config.js` — migrations precisam estar no bundle.
+- Conferir `outputFileTracingIncludes` no `next.config.js`, migrations precisam estar no bundle.
 
 ## Regras de Ouro
 
@@ -129,7 +129,7 @@ Supabase CLI **não suporta rollback automático**. Para reverter:
 
 ## CI/CD
 
-Integração com deploy automatizado (futuro — ver `.github/workflows/ci.yml` quando adicionado):
+Integração com deploy automatizado (futuro, ver `.github/workflows/ci.yml` quando adicionado):
 
 - PR aberto → CI valida sintaxe SQL (sem aplicar).
 - Merge em main → deploy aplica `supabase db push` no ambiente de produção.
@@ -147,6 +147,6 @@ Integração com deploy automatizado (futuro — ver `.github/workflows/ci.yml` 
 ## Referências
 
 - [Supabase CLI docs](https://supabase.com/docs/reference/cli)
-- `app/CLAUDE.md` — convenções Supabase do projeto
-- `.claude/rules/agent-authority.md` — @data-engineer é owner das migrations
-- `app/supabase/migrations/` — migrations atuais (31+)
+- `app/CLAUDE.md`: convenções Supabase do projeto
+- `.claude/rules/agent-authority.md`: @data-engineer é owner das migrations
+- `app/supabase/migrations/`: migrations atuais (31+)

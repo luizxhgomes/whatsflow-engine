@@ -5,7 +5,7 @@ topologia física (repositório), lógica (camadas), de execução (disparo) e d
 
 ---
 
-## 1. Topologia física — o repositório
+## 1. Topologia física, o repositório
 
 ```
 whatsflow-engine/
@@ -13,11 +13,11 @@ whatsflow-engine/
 ├── LICENSE · SECURITY.md · CONTRIBUTING.md · CODE_OF_CONDUCT.md · CHANGELOG.md · AUTHORS
 │
 ├── app/                      # ★ o sistema (Next.js 16, App Router)
-│   ├── app/                  #   páginas (34) + rotas de API (217) — camada de entrada
+│   ├── app/                  #   páginas (34) + rotas de API (217), camada de entrada
 │   │   └── api/              #   webhook Meta, campanhas, installer, diagnostics, health
 │   ├── components/           #   apresentação (444 componentes React)
 │   ├── hooks/                #   estado e orquestração de dados (TanStack Query)
-│   ├── services/             #   API client — ponte tipada entre hooks e rotas
+│   ├── services/             #   API client, ponte tipada entre hooks e rotas
 │   ├── lib/                  #   regra de negócio e integrações
 │   │   ├── whatsapp/         #     Meta Cloud API: envio, templates, mídia, throttling
 │   │   ├── ai/               #     AI SDK v6 multi-provider + memória
@@ -31,7 +31,7 @@ whatsflow-engine/
 │   └── *.test.ts(x)          #   125 arquivos de teste colocados junto do código
 │
 └── docs/
-    ├── architecture/         # ADRs 001–004 + este documento
+    ├── architecture/         # ADRs 001-004 + este documento
     ├── setup/                # replicação: Meta WABA, Supabase, Upstash, deploy
     ├── prd/ · epics/ · stories/  # metodologia story-driven (registro do método)
     └── guides/               # deploy checklist, migrations, testes de flows
@@ -40,7 +40,7 @@ whatsflow-engine/
 Regra de organização: **cada camada tem uma pasta, cada pasta tem um papel único.**
 Nenhum arquivo de feature vive na raiz; testes vivem ao lado do código que testam.
 
-## 2. Topologia lógica — as camadas
+## 2. Topologia lógica, as camadas
 
 Toda feature atravessa as mesmas quatro camadas, sem atalhos:
 
@@ -54,7 +54,7 @@ flowchart TD
     P["Page (app/)"] --> H["Hook (hooks/)"]
     H --> S["Service (services/)"]
     S --> R["API Route (app/api/)"]
-    R --> L["lib/ — regra de negócio"]
+    R --> L["lib/, regra de negócio"]
     L --> DB[("Supabase")]
     L --> META["Meta Cloud API"]
     L --> Q["QStash / Redis"]
@@ -72,7 +72,7 @@ Decisões que sustentam o desenho: [ADR-001 fontes de verdade](ADR-001-fontes-de
 [ADR-002 error handling](ADR-002-error-handling.md) · [ADR-003 auth em camadas](ADR-003-auth-layering.md) ·
 [ADR-004 dedup de webhook](ADR-004-webhook-dedup.md).
 
-## 3. Topologia de execução — o disparo em massa
+## 3. Topologia de execução, o disparo em massa
 
 ```mermaid
 %%{init: {'theme':'base','themeVariables':{
@@ -94,7 +94,7 @@ flowchart LR
 O laço `métricas → throttling` é o mecanismo de credibilidade: a taxa de envio
 reage ao rating de qualidade do número reportado pela Meta (`WHATSAPP_ADAPTIVE_*`).
 
-## 4. Topologia de dados — domínios do schema
+## 4. Topologia de dados, domínios do schema
 
 35+ tabelas em 10 migrations, organizadas em 7 domínios:
 
@@ -134,9 +134,9 @@ erDiagram
 `phone_suppressions` (opt-out) e `webhook_events` (dedup por assinatura) são as tabelas
 que materializam o disparo responsável descrito no README.
 
-## 5. Topologia visual — design system condicional (paleta WhatsApp)
+## 5. Topologia visual, design system condicional (paleta WhatsApp)
 
-A identidade usa **apenas as cores** da marca WhatsApp — nunca a logo. Fonte da
+A identidade usa **apenas as cores** da marca WhatsApp, nunca a logo. Fonte da
 verdade: `app/lib/design-system/tokens/colors.ts` (escala `whatsapp`) e as
 variáveis condicionais de tema em `app/app/globals.css`.
 
@@ -144,7 +144,7 @@ variáveis condicionais de tema em `app/app/globals.css`.
 |---|---|---|
 | `whatsapp.400` | `#25D366` | Brand primary (dark mode primary, rings, mapa de disparos) |
 | `whatsapp.500` | `#00A884` | Accent moderno (hover, focus, unread) |
-| `whatsapp.600` | `#128C7E` | Teal clássico (light mode primary — AA sobre branco) |
+| `whatsapp.600` | `#128C7E` | Teal clássico (light mode primary, AA sobre branco) |
 | `whatsapp.800` | `#075E54` | Teal escuro (subtle, texto sobre accent light) |
 | `whatsapp.100` | `#D9FDD3` | Balão enviado / accent light |
 | `whatsapp.950` | `#0B141A` | Fundo dark do chat e das artes |
