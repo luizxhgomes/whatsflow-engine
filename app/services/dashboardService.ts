@@ -1,3 +1,4 @@
+import type { DashboardOverview } from '@/lib/data/dashboard-overview';
 import { Campaign } from '../types';
 import { campaignService } from './campaignService';
 
@@ -11,6 +12,7 @@ export interface ChartDataPoint {
 }
 
 export interface DashboardStats {
+  overview?: DashboardOverview;
   sent24h: string;
   deliveryRate: string;
   activeCampaigns: string;
@@ -20,6 +22,7 @@ export interface DashboardStats {
 
 // API response from /api/dashboard/stats
 interface StatsAPIResponse {
+  overview?: DashboardOverview;
   totalSent: number;
   totalDelivered: number;
   totalRead: number;
@@ -103,7 +106,8 @@ export const dashboardService = {
       deliveryRate: `${stats.deliveryRate}%`,
       activeCampaigns: stats.activeCampaigns.toString(),
       failedMessages: stats.totalFailed.toString(),
-      chartData
+      chartData,
+      overview: stats.overview
     };
   },
 

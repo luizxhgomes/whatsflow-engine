@@ -1,6 +1,9 @@
 'use client'
 
 import { useEffect } from 'react'
+import { Page } from '@/components/ui/page'
+import { Container } from '@/components/ui/container'
+import { Button } from '@/components/ui/button'
 import { useQueryClient } from '@tanstack/react-query'
 import { useDashboardController } from '@/hooks/useDashboard'
 import { DashboardView } from '@/components/features/dashboard/DashboardView'
@@ -8,15 +11,15 @@ import { campaignService } from '@/services/campaignService'
 import { templateService } from '@/services/templateService'
 
 const DEFAULT_STATS = {
-    sent24h: '0',
-    deliveryRate: '0%',
-    activeCampaigns: '0',
-    failedMessages: '0',
+    sent24h: 'Indisponível',
+    deliveryRate: 'Indisponível',
+    activeCampaigns: 'Indisponível',
+    failedMessages: 'Indisponível',
     chartData: []
 }
 
 export function DashboardClientWrapper({ initialData }: { initialData?: any }) {
-    const { stats, recentCampaigns, isLoading } = useDashboardController(initialData)
+    const { stats, recentCampaigns, isLoading, isError, refetch } = useDashboardController(initialData)
     const queryClient = useQueryClient()
 
     // Prefetch outras páginas em background após o dashboard carregar
@@ -42,11 +45,25 @@ export function DashboardClientWrapper({ initialData }: { initialData?: any }) {
     // Não mostra loading se já temos initialData do servidor
     const showLoading = isLoading && !initialData
 
+    if (isError && !stats) {
+        return (
+            <Page>
+                <Container variant="glass" padding="md" role="alert" className="space-y-3">
+                    <p>Não foi possível carregar os indicadores. Os totais estão indisponíveis.</p>
+                    <Button onClick={() => void refetch()}>Tentar novamente</Button>
+                </Container>
+            </Page>
+        )
+    }
+
     return (
+        <>
+        {isError && <p role="status" className="px-4 pb-3 text-sm text-[var(--ds-text-muted)]">Não foi possível atualizar o dashboard. Exibindo os últimos dados disponíveis.</p>}
         <DashboardView
             stats={stats ?? DEFAULT_STATS}
             recentCampaigns={recentCampaigns ?? []}
             isLoading={showLoading}
         />
+        </>
     )
 }

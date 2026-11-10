@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { loadDashboardOverview } from '@/lib/data/dashboard-overview'
 
 // Allow 60s cache on Vercel Edge - dashboard uses realtime/polling for updates
 export const revalidate = 60
@@ -7,10 +8,10 @@ export const revalidate = 60
 export async function GET() {
   try {
     // Try to use pre-aggregated view first (migration 0033)
-    const { data: viewData, error: viewError } = await supabase
-      .from('campaign_stats_summary')
-      .select('*')
-      .single()
+    const [overview, { data: viewData, error: viewError }] = await Promise.all([
+      loadDashboardOverview(supabase),
+      supabase.from('campaign_stats_summary').select('*').single(),
+    ])
 
     // View exists and returned data - use optimized path
     if (!viewError && viewData) {
@@ -21,6 +22,7 @@ export async function GET() {
         : 0
 
       return NextResponse.json({
+        overview,
         totalSent,
         totalDelivered,
         totalRead: viewData.total_read || 0,
@@ -73,6 +75,7 @@ export async function GET() {
       : 0
 
     return NextResponse.json({
+      overview,
       totalSent,
       totalDelivered,
       totalRead,
