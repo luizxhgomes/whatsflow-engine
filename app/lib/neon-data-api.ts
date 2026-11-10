@@ -57,7 +57,12 @@ export function getNeonDataApiClient(): DatabaseClient | null {
       }
       const headers = new Headers(init?.headers)
       headers.set('Authorization', `Bearer ${await signAccessToken(privateKey)}`)
-      const requestInit: RequestInit = { ...init, headers, redirect: 'error', cache: 'no-store' }
+      const callerSignal = init?.signal === undefined && input instanceof Request ? input.signal : init?.signal
+      const requestInit: RequestInit = {
+        ...init, headers, redirect: 'error', cache: 'no-store',
+        // Next memoizes GET responses during SSR even with no-store; retries must reach the network.
+        signal: callerSignal ?? new AbortController().signal,
+      }
       // PostgREST sends serialized strings. Streams and Request bodies cannot be replayed safely.
       const replayable = !(input instanceof Request) && (init?.body == null || typeof init.body === 'string')
       for (let attempt = 0; ; attempt += 1) {

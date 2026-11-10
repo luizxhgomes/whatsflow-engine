@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { execFileSync } from 'node:child_process'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { exportJWK, exportPKCS8, generateKeyPair, importJWK, jwtVerify, type JWK } from 'jose'
 import { getNeonDataApiClient } from './neon-data-api'
@@ -218,5 +219,83 @@ describe('Neon JWK cache recovery', () => {
   ])('rejects targets outside the configured origin and path: %s', async target => {
     await expect(transport()(target)).rejects.toThrow('Destino da Data API Neon inválido')
     expect(calls).toHaveLength(0)
+  })
+})
+
+
+describe('Neon transport during a React server render', () => {
+  it('bypasses real Next fetch memoization so a JWK retry reaches the network', () => {
+    // A child selects React's actual server build, as Next does, without mocking React.cache.
+    const source = `
+      import { createRequire } from 'node:module'
+      import { getNeonDataApiClient } from ${JSON.stringify(new URL('./neon-data-api.ts', import.meta.url).href)}
+      const require = createRequire(import.meta.url)
+      const React = require('react')
+      const { createDedupeFetch } = require('next/dist/server/lib/dedupe-fetch')
+      const cache = new Map()
+      React.__SERVER_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE.A = {
+        getCacheForType(factory) {
+          if (!cache.has(factory)) cache.set(factory, factory())
+          return cache.get(factory)
+        },
+      }
+      let networkCalls = 0
+      globalThis.fetch = createDedupeFetch(async () => {
+        networkCalls += 1
+        return networkCalls === 1
+          ? Response.json({ message: 'jwk not found', code: null }, { status: 400 })
+          : Response.json([{ key: 'synthetic' }])
+      })
+      const result = await getNeonDataApiClient().from('settings').select('key')
+      console.log(JSON.stringify({ networkCalls, status: result.status, data: result.data }))
+    `
+    const output = execFileSync(process.execPath, ['--conditions=react-server', '--import', 'tsx', '--input-type=module', '-e', source], { encoding: 'utf8' })
+    expect(JSON.parse(output)).toEqual({ networkCalls: 2, status: 200, data: [{ key: 'synthetic' }] })
+  })
+
+  it('preserves an explicit caller signal', async () => {
+    const controller = new AbortController()
+    await transport()(dataUrl, { signal: controller.signal })
+    expect(calls[0].init.signal).toBe(controller.signal)
+  })
+
+  it('preserves caller cancellation without retrying the aborted fetch', async () => {
+    const controller = new AbortController()
+    controller.abort()
+    const fetchMock = vi.fn(async (_input, init: RequestInit) => {
+      init.signal!.throwIfAborted()
+      return response
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    await expect(transport()(dataUrl, { signal: controller.signal })).rejects.toMatchObject({ name: 'AbortError' })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+
+describe('Request signal precedence', () => {
+  it.each(['absent', 'undefined', 'explicit', 'null'] as const)('preserves fetch cancellation semantics with init.signal %s', async override => {
+    const requestController = new AbortController()
+    const request = new Request(dataUrl, { signal: requestController.signal })
+    requestController.abort()
+    const explicitSignal = new AbortController().signal
+    const init = override === 'absent' ? undefined : {
+      signal: override === 'explicit' ? explicitSignal : override === 'null' ? null : undefined,
+    }
+    const fetchMock = vi.fn(async (_input, options: RequestInit) => {
+      options.signal!.throwIfAborted()
+      return response
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const result = transport()(request, init)
+    if (override === 'absent' || override === 'undefined') {
+      await expect(result).rejects.toMatchObject({ name: 'AbortError' })
+      expect(fetchMock.mock.calls[0][1].signal).toBe(request.signal)
+    } else {
+      expect(await result).toBe(response)
+      expect(fetchMock.mock.calls[0][1].signal?.aborted).toBe(false)
+      if (override === 'explicit') expect(fetchMock.mock.calls[0][1].signal).toBe(explicitSignal)
+    }
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })
