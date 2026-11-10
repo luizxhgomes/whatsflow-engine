@@ -1,38 +1,14 @@
 /**
  * WhatsFlow Service Worker
- *
- * Estratégias de cache:
- * - Cache-first: assets estáticos (JS, CSS, fontes, imagens)
- * - Network-first: API calls (dados sempre atualizados)
- * - Stale-while-revalidate: páginas HTML
+ * Cache somente de assets estáticos públicos. Páginas e dados usam a rede.
  */
 
-const CACHE_VERSION = 'whatsflow-v1'
+const CACHE_VERSION = 'whatsflow-v2'
 const STATIC_CACHE = `${CACHE_VERSION}-static`
-const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`
-
-// Assets para pre-cache (shell do app)
 const PRECACHE_ASSETS = [
-  '/',
-  '/atendimento',
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
-]
-
-// Padrões para cache estático
-const STATIC_PATTERNS = [
-  /\/_next\/static\//,           // Next.js static assets
-  /\.(?:js|css|woff2?|ttf|eot)$/, // Scripts, styles, fonts
-  /\/icons\//,                    // App icons
-]
-
-// Padrões para ignorar (não cachear)
-const IGNORE_PATTERNS = [
-  /\/api\//,                      // API routes
-  /\/_next\/webpack-hmr/,         // HMR (dev only)
-  /chrome-extension/,             // Browser extensions
-  /\.(?:mp3|wav|ogg|m4a|aac)$/,   // Audio files (evita corrupção pelo cache)
 ]
 
 // =============================================================================
@@ -48,12 +24,12 @@ self.addEventListener('install', (event) => {
         console.log('[SW] Pre-caching app shell')
         return cache.addAll(PRECACHE_ASSETS)
       })
+      .catch((error) => {
+        console.error('[SW] Pre-cache failed:', error)
+      })
       .then(() => {
         console.log('[SW] Install complete, skipping waiting')
         return self.skipWaiting()
-      })
-      .catch((error) => {
-        console.error('[SW] Pre-cache failed:', error)
       })
   )
 })
@@ -70,7 +46,7 @@ self.addEventListener('activate', (event) => {
       .then((cacheNames) => {
         return Promise.all(
           cacheNames
-            .filter((name) => name.startsWith('whatsflow-') && name !== STATIC_CACHE && name !== DYNAMIC_CACHE)
+            .filter((name) => name.startsWith('whatsflow-') && name !== STATIC_CACHE)
             .map((name) => {
               console.log('[SW] Deleting old cache:', name)
               return caches.delete(name)
@@ -85,38 +61,23 @@ self.addEventListener('activate', (event) => {
 })
 
 // =============================================================================
-// FETCH - Handle requests with appropriate strategy
+// FETCH - Cache only same-origin public static GET requests
 // =============================================================================
 
 self.addEventListener('fetch', (event) => {
   const { request } = event
   const url = new URL(request.url)
+  if (request.method !== 'GET' || url.origin !== self.location.origin ||
+      request.mode === 'navigate' ||
+      /text\/(?:html|x-component)/i.test(request.headers.get('accept') || '') ||
+      request.headers.has('rsc') || request.headers.has('next-router-state-tree') ||
+      request.headers.has('next-router-prefetch') || url.searchParams.has('_rsc')) return
 
-  // Ignorar requests que não devem ser cacheados
-  if (shouldIgnore(url)) {
-    return
-  }
-
-  // API requests: Network-first
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(networkFirst(request, DYNAMIC_CACHE))
-    return
-  }
-
-  // Static assets: Cache-first
-  if (isStaticAsset(url)) {
-    event.respondWith(cacheFirst(request, STATIC_CACHE))
-    return
-  }
-
-  // HTML pages: Stale-while-revalidate
-  if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {
-    event.respondWith(staleWhileRevalidate(request, DYNAMIC_CACHE))
-    return
-  }
-
-  // Default: Network-first
-  event.respondWith(networkFirst(request, DYNAMIC_CACHE))
+  const isPublicAsset = url.pathname.startsWith('/_next/static/') ||
+    /^\/icons\/.+\.(?:png|svg|ico|webp|jpe?g|gif|avif)$/i.test(url.pathname) ||
+    /^\/fonts\/.+\.(?:woff2?|ttf|eot|otf)$/i.test(url.pathname) ||
+    url.pathname === '/manifest.json'
+  if (isPublicAsset) event.respondWith(cacheFirst(request))
 })
 
 // =============================================================================
@@ -194,90 +155,35 @@ self.addEventListener('notificationclick', (event) => {
 })
 
 // =============================================================================
-// CACHE STRATEGIES
+// CACHE - Current static assets only, never HTML or RSC responses
 // =============================================================================
 
-/**
- * Cache-first: Retorna do cache, fallback para network
- * Ideal para assets estáticos que raramente mudam
- */
-async function cacheFirst(request, cacheName) {
-  const cached = await caches.match(request)
-  if (cached) {
-    return cached
+async function cacheFirst(request) {
+  let cache
+  try {
+    cache = await caches.open(STATIC_CACHE)
+    const cached = await cache.match(request)
+    if (cached) return cached
+  } catch {
+    // CacheStorage indisponível não pode impedir o acesso à rede.
   }
 
   try {
     const response = await fetch(request)
-    // Só cacheia requisições GET (Cache API não suporta HEAD/POST)
-    if (response.ok && request.method === 'GET') {
-      const cache = await caches.open(cacheName)
-      cache.put(request, response.clone())
+    if (cache && response.ok && !response.redirected &&
+        !/text\/(?:html|x-component)/i.test(response.headers.get('content-type') || '') &&
+        !/(?:private|no-store)/i.test(response.headers.get('cache-control') || '')) {
+      try {
+        await cache.put(request, response.clone())
+      } catch {
+        // Falha de quota não invalida uma resposta bem-sucedida da rede.
+      }
     }
     return response
   } catch (error) {
     console.error('[SW] Cache-first fetch failed:', error)
     return new Response('Offline', { status: 503 })
   }
-}
-
-/**
- * Network-first: Tenta network, fallback para cache
- * Ideal para dados que precisam estar atualizados
- * Nota: Cache API só suporta GET, então ignoramos HEAD/POST
- */
-async function networkFirst(request, cacheName) {
-  try {
-    const response = await fetch(request)
-    // Só cacheia requisições GET (Cache API não suporta HEAD/POST)
-    if (response.ok && request.method === 'GET') {
-      const cache = await caches.open(cacheName)
-      cache.put(request, response.clone())
-    }
-    return response
-  } catch (error) {
-    const cached = await caches.match(request)
-    if (cached) {
-      return cached
-    }
-    return new Response(JSON.stringify({ error: 'Offline' }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json' }
-    })
-  }
-}
-
-/**
- * Stale-while-revalidate: Retorna cache imediatamente, atualiza em background
- * Ideal para páginas HTML - rápido mas sempre atualizado
- */
-async function staleWhileRevalidate(request, cacheName) {
-  const cache = await caches.open(cacheName)
-  const cached = await cache.match(request)
-
-  const fetchPromise = fetch(request)
-    .then((response) => {
-      // Só cacheia requisições GET (Cache API não suporta HEAD/POST)
-      if (response.ok && request.method === 'GET') {
-        cache.put(request, response.clone())
-      }
-      return response
-    })
-    .catch(() => null)
-
-  return cached || fetchPromise || new Response('Offline', { status: 503 })
-}
-
-// =============================================================================
-// HELPERS
-// =============================================================================
-
-function shouldIgnore(url) {
-  return IGNORE_PATTERNS.some((pattern) => pattern.test(url.href))
-}
-
-function isStaticAsset(url) {
-  return STATIC_PATTERNS.some((pattern) => pattern.test(url.href))
 }
 
 // =============================================================================
