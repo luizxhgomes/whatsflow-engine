@@ -1,8 +1,21 @@
 import { defineConfig } from "@neon/config/v1";
 
 export default defineConfig({
-  // Declare your Neon services here
   auth: false,
+  // Provisionar primeiro via CLI com --add-default-grants=false --skip-auth-schema.
+  dataApi: {
+    authProvider: "external",
+    jwksUrl: "https://whatsflow-engine.vercel.app/.well-known/jwks.json",
+    providerName: "WhatsFlow",
+    jwtAudience: "whatsflow-data",
+    settings: {
+      dbAnonRole: "anonymous",
+      dbSchemas: ["public"],
+      jwtRoleClaimKey: ".role",
+      dbMaxRows: 1000,
+      openapiMode: "disabled",
+    },
+  },
   // Branch policy: per-branch tuning
   branch: (branch) => {
     if (branch.isDefault) {
