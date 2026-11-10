@@ -40,6 +40,9 @@ export async function proxy(request: NextRequest) {
         return addCorsHeaders(new NextResponse(null, { status: 204 }), request)
     }
 
+    // Neon verifies server JWTs using this public key, including during setup.
+    if (pathname === '/.well-known/jwks.json') return next()
+
     const isInstallerPage = pathname === '/install' || pathname.startsWith('/install/')
     const isInstallerApi = pathname === '/api/auth/setup' || pathname.startsWith('/api/installer/')
     if (!hasMasterPassword) {
@@ -48,7 +51,7 @@ export async function proxy(request: NextRequest) {
     }
 
     // Exact callback paths stay public; their handlers authenticate external senders.
-    if (isApiRoute && isPublicEndpoint(pathname)) return next()
+    if (isApiRoute && isPublicEndpoint(pathname, request.method)) return next()
     if (!isApiRoute && PUBLIC_PAGES.some(page => pathname === page || pathname.startsWith(`${page}/`))) {
         return NextResponse.next()
     }

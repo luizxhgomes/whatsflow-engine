@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { DatabaseClient } from "@/lib/supabase";
 import type { SavedWorkflow, WorkflowData } from "./api-client";
 import type { WorkflowEdge, WorkflowNode } from "./workflow-store";
 
@@ -78,7 +78,7 @@ export function buildDefaultGraph(): {
 }
 
 export async function getCompanyId(
-  supabase: SupabaseClient
+  supabase: DatabaseClient
 ): Promise<string | null> {
   const { data } = await supabase
     .from("settings")
@@ -112,7 +112,7 @@ export function toSavedWorkflow(
 }
 
 export async function fetchWorkflowRecord(
-  supabase: SupabaseClient,
+  supabase: DatabaseClient,
   workflowId: string
 ): Promise<WorkflowRecord | null> {
   const { data: workflow } = await supabase
@@ -144,7 +144,7 @@ export async function fetchWorkflowRecord(
 }
 
 export async function ensureWorkflowRecord(
-  supabase: SupabaseClient,
+  supabase: DatabaseClient,
   workflowId: string,
   ownerCompanyId?: string | null
 ): Promise<WorkflowRecord> {
@@ -199,7 +199,7 @@ export async function ensureWorkflowRecord(
 }
 
 export async function createWorkflowRecord(
-  supabase: SupabaseClient,
+  supabase: DatabaseClient,
   input: WorkflowData,
   ownerCompanyId?: string | null
 ): Promise<WorkflowRecord> {
@@ -251,7 +251,7 @@ export async function createWorkflowRecord(
 }
 
 export async function updateWorkflowRecord(
-  supabase: SupabaseClient,
+  supabase: DatabaseClient,
   workflowId: string,
   patch: Partial<WorkflowData>
 ): Promise<WorkflowRecord> {
@@ -286,7 +286,7 @@ export async function updateWorkflowRecord(
 }
 
 export async function listWorkflowRecords(
-  supabase: SupabaseClient,
+  supabase: DatabaseClient,
   ownerCompanyId?: string | null
 ): Promise<WorkflowRecord[]> {
   let query = supabase.from("workflows").select("*").order("updated_at", {
@@ -343,7 +343,7 @@ export async function listWorkflowRecords(
 }
 
 export async function createNewVersion(
-  supabase: SupabaseClient,
+  supabase: DatabaseClient,
   workflowId: string,
   input: { nodes: WorkflowNode[]; edges: WorkflowEdge[]; status: string }
 ): Promise<WorkflowVersionRow> {

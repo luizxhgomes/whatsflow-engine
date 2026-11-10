@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { DatabaseClient } from "@/lib/supabase";
 import { getPendingConversation } from "./workflow-conversations";
 import { normalizePhoneNumber } from "@/lib/phone-formatter";
 
@@ -72,7 +72,7 @@ function matchesFilter(
  * 4. Default workflow
  */
 export async function routeInboundMessage(params: {
-  supabase: SupabaseClient;
+  supabase: DatabaseClient;
   from: string;
   text: string;
   messageType: string;
@@ -134,7 +134,7 @@ export async function routeInboundMessage(params: {
  * Load MessageReceived workflows from published versions.
  */
 export async function loadMessageReceivedWorkflows(
-  supabase: SupabaseClient,
+  supabase: DatabaseClient,
   excludeWorkflowIds: string[]
 ): Promise<MessageReceivedWorkflow[]> {
   const { data } = await supabase

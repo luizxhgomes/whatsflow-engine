@@ -49,11 +49,37 @@ describe('dashboard access boundary', () => {
   })
 })
 
+describe('public JWKS boundary', () => {
+  it.each(['', 'configured-password'])('allows the exact JWKS URL with or without setup (%s)', async password => {
+    vi.stubEnv('MASTER_PASSWORD', password)
+    expect((await proxy(request('/.well-known/jwks.json'))).headers.get('x-middleware-next')).toBe('1')
+  })
+  it.each(['/.well-known/jwks.json/private', '/.well-known/jwksXjson', '/.well-known/other'])('protects %s', async path => {
+    expect((await proxy(request(path))).status).toBe(307)
+  })
+})
+
 describe('proxy matcher boundaries', () => {
   it.each(['/faviconXico', '/manifest.json/private', '/openapi.yaml/private', '/_next/imagefake', '/api/contacts/export.png', '/_next/staticfake'])('protects %s', path => {
     expect(unstable_doesMiddlewareMatch({ config, url: `https://example.test${path}` })).toBe(true)
   })
   it.each(['/favicon.ico', '/manifest.json', '/sw.js', '/openapi.yaml', '/nexus.mp3', '/icons/icon-192.png', '/screenshots/mobile.png', '/_next/image', '/_next/static/chunks/app.js'])('allows only known static resource %s', path => {
     expect(unstable_doesMiddlewareMatch({ config, url: `https://example.test${path}` })).toBe(false)
+  })
+})
+
+describe('signed private-media callback boundary', () => {
+  it.each(['GET', 'HEAD'])('lets %s reach the exact signed-media handler without dashboard auth', async method => {
+    const response = await proxy(new NextRequest('https://example.test/api/media?token=synthetic', { method }))
+    expect(response.headers.get('x-middleware-next')).toBe('1')
+  })
+  it.each([
+    ['/api/media', 'POST'],
+    ['/api/media', 'DELETE'],
+    ['/api/media/private', 'GET'],
+    ['/api/media/', 'HEAD'],
+  ])('protects %s with %s', async (path, method) => {
+    const response = await proxy(new NextRequest(`https://example.test${path}`, { method }))
+    expect(response.status).toBe(401)
   })
 })

@@ -103,7 +103,9 @@ export function isAdminEndpoint(pathname: string): boolean {
 /**
  * Check if request is for a public endpoint
  */
-export function isPublicEndpoint(pathname: string): boolean {
+export function isPublicEndpoint(pathname: string, method?: string): boolean {
+  // The media handler verifies its own expiring signed URL.
+  if (pathname === '/api/media') return method === 'GET' || method === 'HEAD'
   return PUBLIC_ENDPOINTS.includes(pathname) || /^\/api\/public\/lead-forms\/[^/]+(?:\/submit)?$/.test(pathname)
 }
 

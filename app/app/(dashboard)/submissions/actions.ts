@@ -1,7 +1,7 @@
 'use server'
 
 import { cache } from 'react'
-import { getSupabaseAdmin } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-server'
 
 export interface SubmissionsInitialData {
   submissions: any[]
@@ -16,8 +16,7 @@ export interface SubmissionsInitialData {
  */
 export const getSubmissionsInitialData = cache(
   async (params: { campaignId?: string; flowId?: string }): Promise<SubmissionsInitialData | null> => {
-    const supabase = getSupabaseAdmin()
-    if (!supabase) return null
+    const supabase = await createClient()
 
     const limit = 20
     const offset = 0

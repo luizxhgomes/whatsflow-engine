@@ -1,11 +1,14 @@
 /**
- * Supabase Client
+ * Database facade (Neon Data API with legacy Supabase compatibility)
  * 
  * PostgreSQL database with connection pooling and RLS
- * Banco principal do WhatsFlow (PostgreSQL + RLS)
+ * Preserve from/rpc callers while migrating the database provider.
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { PostgrestClient } from '@supabase/postgrest-js'
+import { getNeonDataApiClient, hasNeonDataApiConfiguration, isNeonDataApiConfigured, type DatabaseClient } from './neon-data-api'
+export type { DatabaseClient } from './neon-data-api'
 
 function getSupabasePublishableKey(): string | undefined {
     // O Supabase pode gerar esse nome no snippet do dashboard.
@@ -33,18 +36,21 @@ function getSupabaseServiceRoleKey(): string | undefined {
 
 // Server-side client with service role (full access, bypasses RLS)
 // Use this for API routes and server components
-let _supabaseAdmin: SupabaseClient | null = null
+let _supabaseAdmin: DatabaseClient | null = null
 
 /**
- * Retorna um client Supabase server-side com Service Role (bypassa RLS).
+ * Retorna o cliente administrativo Neon ou o cliente legado Supabase.
  *
  * Use em rotas de API e componentes server-side que precisam de acesso administrativo.
  * Retorna `null` quando variáveis de ambiente obrigatórias não estão configuradas
  * (útil durante o wizard de setup).
  *
- * @returns Client Supabase admin, ou `null` se não configurado.
+ * @returns Cliente de banco, ou `null` fora do servidor ou sem configuração.
  */
-export function getSupabaseAdmin(): SupabaseClient | null {
+export function getSupabaseAdmin(): DatabaseClient | null {
+    if (typeof window !== 'undefined') return null
+    // Partial Neon config must never route operations to a legacy database.
+    if (hasNeonDataApiConfiguration()) return getNeonDataApiClient()
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
     const key = getSupabaseServiceRoleKey()
 
@@ -71,11 +77,9 @@ export function getSupabaseAdmin(): SupabaseClient | null {
     }
 
     if (!_supabaseAdmin) {
-        _supabaseAdmin = createClient(url, key, {
-            auth: {
-                autoRefreshToken: false,
-                persistSession: false,
-            },
+        _supabaseAdmin = new PostgrestClient(`${url.replace(/\/$/, '')}/rest/v1`, {
+            headers: { apikey: key, Authorization: `Bearer ${key}` },
+            retry: false,
         })
     }
     return _supabaseAdmin
@@ -130,12 +134,12 @@ export const supabase = {
     // Default to admin for server-side operations
     from: (table: string) => {
         const client = getSupabaseAdmin()
-        if (!client) throw new Error('Supabase not configured. Complete setup at /install')
+        if (!client) throw new Error('Banco de dados não configurado')
         return client.from(table)
     },
     rpc: (fn: string, params?: object) => {
         const client = getSupabaseAdmin()
-        if (!client) throw new Error('Supabase not configured. Complete setup at /install')
+        if (!client) throw new Error('Banco de dados não configurado')
         return client.rpc(fn, params)
     },
 
@@ -239,11 +243,12 @@ export async function checkSupabaseConnection(): Promise<{
 // ============================================================================
 
 /**
- * Indica se as variáveis de ambiente mínimas do Supabase estão configuradas.
+ * Indica se o banco ativo (Neon ou Supabase legado) está configurado.
  *
- * @returns `true` se URL + publishable key + secret key estiverem presentes; caso contrário `false`.
+ * Neon requer URL e chave privada; o fallback legado requer as chaves Supabase.
  */
 export function isSupabaseConfigured(): boolean {
+    if (hasNeonDataApiConfiguration()) return isNeonDataApiConfigured()
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
     const publishableKey = getSupabasePublishableKey()
     const secretKey = getSupabaseServiceRoleKey()

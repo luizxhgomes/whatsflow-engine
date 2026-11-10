@@ -1,7 +1,7 @@
 'use server'
 
 import { cache } from 'react'
-import { getSupabaseAdmin } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-server'
 import { ContactStatus } from '@/types'
 import type { Contact, CustomFieldDefinition } from '@/types'
 
@@ -46,10 +46,7 @@ const normalizePhone = (phone: string) => {
  * Usa cache() para deduplicação per-request.
  */
 export const getContactsInitialData = cache(async (): Promise<ContactsInitialData> => {
-  const supabase = getSupabaseAdmin()
-  if (!supabase) {
-    throw new Error('Supabase não configurado')
-  }
+  const supabase = await createClient()
 
   // Buscar tudo em paralelo
   const [contactsResult, tagsResult, customFieldsResult, suppressionsResult, statsResult] = await Promise.all([

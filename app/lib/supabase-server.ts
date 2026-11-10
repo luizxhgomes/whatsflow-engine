@@ -1,40 +1,18 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { headers } from 'next/headers'
+import { verifyApiKey } from '@/lib/auth'
+import { validateSession } from '@/lib/user-auth'
+import { getSupabaseAdmin, type DatabaseClient } from '@/lib/supabase'
 
-export async function createClient() {
-    const cookieStore = await cookies()
+/** Database access for dashboard actions and authenticated API handlers. */
+export async function createClient(): Promise<DatabaseClient> {
+  const requestHeaders = await headers()
+  const hasApiKey = !!requestHeaders.get('authorization') || !!requestHeaders.get('x-api-key')
+  const authorized = hasApiKey
+    ? (await verifyApiKey({ headers: requestHeaders })).valid
+    : await validateSession()
+  if (!authorized) throw new Error('Acesso não autorizado')
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const publishableKey =
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
-
-    if (!url || !publishableKey) {
-        throw new Error(
-            'Supabase não configurado: defina NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (ou NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY)'
-        )
-    }
-
-    return createServerClient(
-        url,
-        publishableKey,
-        {
-            cookies: {
-                getAll() {
-                    return cookieStore.getAll()
-                },
-                setAll(cookiesToSet) {
-                    try {
-                        cookiesToSet.forEach(({ name, value, options }) =>
-                            cookieStore.set(name, value, options)
-                        )
-                    } catch {
-                        // The `setAll` method was called from a Server Component.
-                        // This can be ignored if you have middleware refreshing
-                        // user sessions.
-                    }
-                },
-            },
-        }
-    )
+  const client = getSupabaseAdmin()
+  if (!client) throw new Error('Banco de dados não configurado')
+  return client
 }

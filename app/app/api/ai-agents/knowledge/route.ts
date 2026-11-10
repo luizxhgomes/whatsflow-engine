@@ -11,7 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { DatabaseClient } from '@/lib/supabase'
 import { z } from 'zod'
 import { processDocumentOCR } from '@/lib/ai/ocr'
 import {
@@ -42,7 +42,7 @@ const EMBEDDING_API_KEY_MAP: Record<EmbeddingProvider, { settingKey: string; env
  * Busca a API key correta para o provider de embedding
  */
 async function getEmbeddingApiKey(
-  supabase: SupabaseClient,
+  supabase: DatabaseClient,
   provider: EmbeddingProvider
 ): Promise<{ apiKey: string | null; providerLabel: string }> {
   const config = EMBEDDING_API_KEY_MAP[provider] || EMBEDDING_API_KEY_MAP.google
