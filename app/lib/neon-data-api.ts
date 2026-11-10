@@ -47,7 +47,7 @@ export function getNeonDataApiClient(): DatabaseClient | null {
   const privateKey = process.env.NEON_DATA_API_PRIVATE_KEY!
   const baseUrl = base.href.replace(/\/$/, '')
   return new PostgrestClient(baseUrl, {
-    // Keep one request per operation, including configuration/signing failures.
+    // Disable broad SDK retries; only the pre-SQL JWK cache miss is retried below.
     retry: false,
     fetch: async (input, init) => {
       if (typeof window !== 'undefined') throw new Error('Acesso ao banco restrito ao servidor')
@@ -57,7 +57,17 @@ export function getNeonDataApiClient(): DatabaseClient | null {
       }
       const headers = new Headers(init?.headers)
       headers.set('Authorization', `Bearer ${await signAccessToken(privateKey)}`)
-      return fetch(input, { ...init, headers, redirect: 'error', cache: 'no-store' })
+      const requestInit: RequestInit = { ...init, headers, redirect: 'error', cache: 'no-store' }
+      // PostgREST sends serialized strings. Streams and Request bodies cannot be replayed safely.
+      const replayable = !(input instanceof Request) && (init?.body == null || typeof init.body === 'string')
+      for (let attempt = 0; ; attempt += 1) {
+        const response = await fetch(input, requestInit)
+        if (!replayable || response.status !== 400 || attempt === 2) return response
+        const error = await response.clone().json().catch(() => null)
+        // Neon rejects this exact cache miss before SQL; SQL/PostgREST error codes must not retry.
+        if (error?.message !== 'jwk not found' || error?.code !== null) return response
+        await new Promise(resolve => setTimeout(resolve, attempt === 0 ? 100 : 250))
+      }
     },
   })
 }
