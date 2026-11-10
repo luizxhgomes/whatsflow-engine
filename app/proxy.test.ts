@@ -1,7 +1,8 @@
 // @vitest-environment node
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest } from 'next/server'
-import { proxy } from './proxy'
+import { proxy, config } from './proxy'
+import { unstable_doesMiddlewareMatch } from 'next/experimental/testing/server'
 
 const db = vi.hoisted(() => ({ sessions: [] as { token: string; createdAt: string }[] }))
 vi.mock('@/lib/supabase', () => ({ supabase: { from: () => ({ select: () => ({ eq: (_: string, key: string) => ({ single: async () => ({ data: key === 'session_tokens' ? { value: JSON.stringify(db.sessions), updated_at: new Date().toISOString() } : null, error: null }) }) }) }) } }))
@@ -45,5 +46,14 @@ describe('dashboard access boundary', () => {
   })
   it.each(['/api/auth/login', '/api/auth/status', '/api/public/lead-forms/demo', '/api/webhook', '/api/flows/endpoint', '/f/demo'])('preserves public callback or form %s', async path => {
     expect((await proxy(request(path))).headers.get('x-middleware-next')).toBe('1')
+  })
+})
+
+describe('proxy matcher boundaries', () => {
+  it.each(['/faviconXico', '/manifest.json/private', '/openapi.yaml/private', '/_next/imagefake', '/api/contacts/export.png', '/_next/staticfake'])('protects %s', path => {
+    expect(unstable_doesMiddlewareMatch({ config, url: `https://example.test${path}` })).toBe(true)
+  })
+  it.each(['/favicon.ico', '/manifest.json', '/sw.js', '/openapi.yaml', '/nexus.mp3', '/icons/icon-192.png', '/screenshots/mobile.png', '/_next/image', '/_next/static/chunks/app.js'])('allows only known static resource %s', path => {
+    expect(unstable_doesMiddlewareMatch({ config, url: `https://example.test${path}` })).toBe(false)
   })
 })

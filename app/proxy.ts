@@ -7,7 +7,7 @@ import { validateSession } from '@/lib/user-auth'
 
 export const config = {
     // Only actual static directories/files bypass authentication, never API suffixes.
-    matcher: ['/((?!_next/static|_next/image|favicon.ico|manifest\\.json|sw\\.js|openapi\\.yaml|nexus\\.mp3|icons/|screenshots/).*)'],
+    matcher: ['/((?!_next/static(?:/|$)|_next/image$|favicon\\.ico$|manifest\\.json$|sw\\.js$|openapi\\.yaml$|nexus\\.mp3$|icons/|screenshots/).*)'],
 }
 
 const PUBLIC_PAGES = ['/login', '/f', '/atendimento', '/docs']

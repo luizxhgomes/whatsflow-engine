@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers'
 import { type AuthResult, unauthorizedResponse, verifyApiKey } from '@/lib/auth'
 import { validateSession } from '@/lib/user-auth'
 
@@ -25,3 +26,19 @@ export async function requireSessionOrApiKey(request: Request) {
   return null
 }
 
+
+/** Local workflow calls keep authentication without forwarding arbitrary request headers. */
+export async function getLocalWorkflowHeaders(destination: string): Promise<Record<string, string>> {
+  const url = new URL(destination)
+  if (!['http:', 'https:'].includes(url.protocol) || !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) {
+    throw new Error('Destino do workflow local inválido')
+  }
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  const apiKey = process.env.WHATSFLOW_API_KEY || process.env.WHATSFLOW_ADMIN_KEY
+  if (apiKey) return { ...headers, Authorization: `Bearer ${apiKey}` }
+  const token = (await cookies()).get('whatsflow_session')?.value
+  if (token && await validateSession(token)) {
+    return { ...headers, Cookie: `whatsflow_session=${encodeURIComponent(token)}` }
+  }
+  throw new Error('Workflow local requer uma chave de API ou sessão válida')
+}

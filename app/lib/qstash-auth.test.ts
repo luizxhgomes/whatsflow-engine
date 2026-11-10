@@ -20,3 +20,15 @@ it('rejects a modified body', async () => { expect(await verifyQStashRequest(req
 it('rejects a different destination', async () => { expect(await verifyQStashRequest(request(sign(key, 'https://other.test')), body)).toBe(false) })
 it('rejects an expired message', async () => { expect(await verifyQStashRequest(request(sign(key, url, 1)), body)).toBe(false) })
 it('fails closed without signing keys', async () => { vi.stubEnv('QSTASH_CURRENT_SIGNING_KEY', ''); expect(await verifyQStashRequest(request(sign()), body)).toBe(false) })
+
+it('verifies the configured public URL when the proxy receives an internal host', async () => {
+  vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://example.test')
+  const req = new Request('http://localhost:3000/api/campaign/workflow', { headers: { 'upstash-signature': sign(key, 'https://example.test/api/campaign/workflow'), 'x-forwarded-host': 'attacker.test' } })
+  expect(await verifyQStashRequest(req, body)).toBe(true)
+})
+it('never uses an untrusted forwarded host as the signed destination', async () => {
+  vi.stubEnv('NEXT_PUBLIC_APP_URL', '')
+  vi.stubEnv('WEBHOOK_BASE_URL', '')
+  const req = new Request('http://localhost:3000/api/campaign/workflow', { headers: { 'upstash-signature': sign(key, 'https://attacker.test/api/campaign/workflow'), 'x-forwarded-host': 'attacker.test' } })
+  expect(await verifyQStashRequest(req, body)).toBe(false)
+})

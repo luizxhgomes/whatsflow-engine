@@ -13,7 +13,7 @@ type WebhookSignatureResult =
  *
  * Retorna string vazia se nenhuma fonte tiver valor.
  */
-async function resolveMetaAppSecret(): Promise<string> {
+export async function resolveMetaAppSecret(): Promise<string> {
   const envSecret = String(process.env.META_APP_SECRET || '').trim()
   if (envSecret) return envSecret
 

@@ -182,8 +182,16 @@ export async function verifyQStashRequest(request: Request, body: string): Promi
   const nextSigningKey = process.env.QSTASH_NEXT_SIGNING_KEY
   if (!signature || !currentSigningKey || !nextSigningKey) return false
   try {
+    const url = new URL(request.url)
+    const publicBase = process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.WEBHOOK_BASE_URL?.trim()
+    if (publicBase) {
+      const origin = new URL(publicBase)
+      url.protocol = origin.protocol
+      url.host = origin.host
+      url.port = origin.port
+    }
     return await new Receiver({ currentSigningKey, nextSigningKey }).verify({
-      signature, body, url: request.url,
+      signature, body, url: url.href,
     })
   } catch {
     return false

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { requireSessionOrApiKey, getLocalWorkflowHeaders } from '@/lib/request-auth'
 import { Client } from '@upstash/workflow'
 
 import { supabase } from '@/lib/supabase'
@@ -143,7 +144,9 @@ interface ContactRow {
  * POST /api/campaigns/[id]/resend-skipped
  * Revalida os contatos SKIPPED e reenfileira apenas os que ficarem válidos.
  */
-export async function POST(_request: Request, { params }: Params) {
+export async function POST(request: Request, { params }: Params) {
+  const denied = await requireSessionOrApiKey(request)
+  if (denied) return denied
   try {
     const { id: campaignId } = await params
 
@@ -643,6 +646,7 @@ export async function POST(_request: Request, { params }: Params) {
 
     // 7) Enfileirar workflow com apenas os válidos
     const baseUrl = (process.env.NEXT_PUBLIC_APP_URL?.trim())
+      || process.env.WEBHOOK_BASE_URL?.trim()
       || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.trim()}` : null)
       || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL.trim()}` : null)
       || 'http://localhost:3000'
@@ -673,7 +677,7 @@ export async function POST(_request: Request, { params }: Params) {
     if (isLocalhost) {
       const response = await fetchWithTimeout(`${baseUrl}/api/campaign/workflow`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await getLocalWorkflowHeaders(`${baseUrl}/api/campaign/workflow`),
         body: JSON.stringify(workflowPayload),
         timeoutMs: 30000,
       })
