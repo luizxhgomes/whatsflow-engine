@@ -47,9 +47,8 @@ export const dashboardService = {
     ]);
     
     // Parse das respostas
-    const stats: StatsAPIResponse = statsResponse.ok 
-      ? await statsResponse.json() 
-      : { totalSent: 0, totalDelivered: 0, totalRead: 0, totalFailed: 0, activeCampaigns: 0, deliveryRate: 0 };
+    if (!statsResponse.ok) throw new Error(`${statsResponse.status}: Falha ao buscar estatísticas do dashboard`);
+    const stats: StatsAPIResponse = await statsResponse.json();
     
     const campaignsPayload =
       campaignsResult as unknown as Campaign[] | { data?: Campaign[] };
@@ -113,11 +112,7 @@ export const dashboardService = {
    * Sem cache para manter o dashboard “ao vivo”.
    */
   getRecentCampaigns: async (): Promise<Campaign[]> => {
-    try {
-      const result = await campaignService.list({ limit: 5, offset: 0, search: '', status: 'All' });
-      return result.data || [];
-    } catch {
-      return [];
-    }
+    const result = await campaignService.list({ limit: 5, offset: 0, search: '', status: 'All' });
+    return result.data;
   }
 };

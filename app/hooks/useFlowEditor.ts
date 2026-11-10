@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useRealtimeQuery } from './useRealtimeQuery'
 import { toast } from 'sonner'
 import { flowsService } from '@/services/flowsService'
 
@@ -9,7 +10,8 @@ export function useFlowEditorController(flowId: string) {
 
   useEffect(() => setMounted(true), [])
 
-  const flowQuery = useQuery({
+  const flowQuery = useRealtimeQuery({
+    table: 'flows',
     queryKey: ['flows', flowId],
     queryFn: () => flowsService.get(flowId),
     enabled: mounted && !!flowId,

@@ -10,7 +10,14 @@ vi.mock('./campaignService', () => ({
 import { campaignService } from './campaignService'
 import { dashboardService } from './dashboardService'
 
-import { createMockFetchResponse, setupFetchMock } from '@/tests/helpers'
+function createMockFetchResponse(data: unknown, options: Partial<Response> = {}) {
+  return { ok: true, status: 200, json: async () => data, ...options }
+}
+function setupFetchMock() {
+  const fetchMock = vi.fn()
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
+}
 
 describe('dashboardService', () => {
   const mockFetch = setupFetchMock()
@@ -56,14 +63,16 @@ describe('dashboardService', () => {
     expect(result.chartData).toHaveLength(30)
   })
 
-  it('getStats deve usar defaults quando stats falha', async () => {
-    mockFetch.mockResolvedValueOnce(createMockFetchResponse({}, { ok: false }))
-    ;(campaignService.getAll as ReturnType<typeof vi.fn>).mockResolvedValueOnce([])
+  it.each([401, 500])('getStats propaga HTTP %s sem inventar zeros', async status => {
+    mockFetch.mockResolvedValueOnce(createMockFetchResponse({}, { ok: false, status }))
+    vi.mocked(campaignService.getAll).mockResolvedValueOnce([])
+    await expect(dashboardService.getStats()).rejects.toThrow(String(status))
+  })
 
-    const result = await dashboardService.getStats()
-
-    expect(result.sent24h).toBe('0')
-    expect(result.failedMessages).toBe('0')
+  it('getStats propaga falha da consulta de campanhas', async () => {
+    mockFetch.mockResolvedValueOnce(createMockFetchResponse({ totalSent: 10 }))
+    vi.mocked(campaignService.getAll).mockRejectedValueOnce(new Error('500: Falha nas campanhas'))
+    await expect(dashboardService.getStats()).rejects.toThrow('500')
   })
 
   it('getRecentCampaigns deve retornar lista', async () => {
@@ -76,11 +85,8 @@ describe('dashboardService', () => {
     expect(result).toHaveLength(1)
   })
 
-  it('getRecentCampaigns deve retornar vazio em erro', async () => {
-    ;(campaignService.list as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('x'))
-
-    const result = await dashboardService.getRecentCampaigns()
-
-    expect(result).toEqual([])
+  it('getRecentCampaigns propaga erro sem apagar o histórico', async () => {
+    vi.mocked(campaignService.list).mockRejectedValueOnce(new Error('401: Sessão expirada'))
+    await expect(dashboardService.getRecentCampaigns()).rejects.toThrow('401')
   })
 })

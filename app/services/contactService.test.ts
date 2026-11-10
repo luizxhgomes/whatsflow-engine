@@ -26,7 +26,14 @@ vi.mock('../lib/csv-parser', () => ({
   generateImportReport: vi.fn(() => 'report'),
 }))
 
-import { createMockFetchResponse, setupFetchMock } from '@/tests/helpers'
+function createMockFetchResponse(data: unknown, options: Partial<Response> = {}) {
+  return { ok: true, status: 200, json: async () => data, ...options }
+}
+function setupFetchMock() {
+  const fetchMock = vi.fn()
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
+}
 
 describe('contactService', () => {
   const mockFetch = setupFetchMock()
@@ -37,6 +44,11 @@ describe('contactService', () => {
 
   afterEach(() => {
     vi.resetAllMocks()
+  })
+
+  it.each([401, 500])('getStats propaga HTTP %s sem inventar zeros', async status => {
+    mockFetch.mockResolvedValueOnce(createMockFetchResponse(null, { ok: false, status }))
+    await expect(contactService.getStats()).rejects.toThrow(String(status))
   })
 
   describe('list', () => {

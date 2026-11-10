@@ -29,7 +29,7 @@ export interface UseRealtimeQueryOptions<TData, TError = Error>
     /**
      * Table to subscribe to for Realtime updates
      */
-    table: RealtimeTable
+    table: RealtimeTable | 'templates' | 'flows'
 
     /**
      * Event types to listen for (default: '*')

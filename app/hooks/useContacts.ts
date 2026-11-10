@@ -12,6 +12,7 @@ import {
   sanitizeCustomFieldsForUpdate,
 } from '@/lib/business/contact';
 import { useContactSelection } from './useContactSelection';
+import { useRealtimeQuery } from './useRealtimeQuery';
 import type { ContactsInitialData } from '@/app/(dashboard)/contacts/actions';
 
 // =============================================================================
@@ -78,7 +79,8 @@ export const useContactsController = (initialData?: ContactsInitialData) => {
     ? { data: initialData.contacts, total: initialData.total }
     : undefined
 
-  const contactsQuery = useQuery({
+  const contactsQuery = useRealtimeQuery({
+    table: 'contacts',
     queryKey: contactsQueryKey,
     queryFn: () => contactService.list({
       limit: PAGINATION.contacts,
@@ -109,7 +111,8 @@ export const useContactsController = (initialData?: ContactsInitialData) => {
     setIsEditModalOpen(true);
   }, [editFromUrl, contactsQuery.data, contactByIdQuery.data]);
 
-  const statsQuery = useQuery({
+  const statsQuery = useRealtimeQuery({
+    table: 'contacts',
     queryKey: ['contactStats'],
     queryFn: contactService.getStats,
     initialData: initialData?.stats ? {
@@ -120,7 +123,8 @@ export const useContactsController = (initialData?: ContactsInitialData) => {
     staleTime: CACHE.stats
   });
 
-  const tagsQuery = useQuery({
+  const tagsQuery = useRealtimeQuery({
+    table: 'contacts',
     queryKey: ['contactTags'],
     queryFn: contactService.getTags,
     initialData: initialData?.tags,
@@ -137,9 +141,6 @@ export const useContactsController = (initialData?: ContactsInitialData) => {
   const refreshCustomFields = () => {
     queryClient.invalidateQueries({ queryKey: ['customFields'] });
   };
-
-  // NOTA: Realtime agora é gerenciado pelo CentralizedRealtimeProvider
-  // que invalida queries automaticamente via debounce
 
   // --- Mutations ---
   const addMutation = useMutation({

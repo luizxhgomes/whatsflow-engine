@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useRealtimeQuery } from './useRealtimeQuery'
 import { toast } from 'sonner'
 import { flowsService } from '@/services/flowsService'
 
@@ -7,7 +8,8 @@ export const useFlowsBuilderController = () => {
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
 
-  const flowsQuery = useQuery({
+  const flowsQuery = useRealtimeQuery({
+    table: 'flows',
     queryKey: ['flows'],
     queryFn: flowsService.list,
     staleTime: 10_000,

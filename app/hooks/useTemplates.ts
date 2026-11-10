@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRealtimeQuery } from './useRealtimeQuery';
 import { toast } from 'sonner';
 import { templateService, UtilityCategory, GeneratedTemplate, GenerateUtilityParams } from '../services/templateService';
 import { manualDraftsService } from '../services/manualDraftsService';
@@ -87,8 +88,8 @@ export const useTemplatesController = () => {
   const [universalPhone, setUniversalPhone] = useState<string>('');
 
   // --- Queries ---
-  // Templates raramente mudam - cache de 10 min, mas pode sincronizar manualmente
-  const templatesQuery = useQuery({
+  const templatesQuery = useRealtimeQuery({
+    table: 'templates',
     queryKey: ['templates'],
     queryFn: templateService.getAll,
     staleTime: CACHE.templates,  // 10 minutos - permite updates automáticos
@@ -99,7 +100,8 @@ export const useTemplatesController = () => {
   });
 
   // Rascunhos manuais: usados para identificar quais itens DRAFT são editáveis/enviáveis via wizard.
-  const manualDraftsQuery = useQuery({
+  const manualDraftsQuery = useRealtimeQuery({
+    table: 'templates',
     queryKey: ['templates', 'drafts', 'manual'],
     queryFn: manualDraftsService.list,
     staleTime: 30_000,

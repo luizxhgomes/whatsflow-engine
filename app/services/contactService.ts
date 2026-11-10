@@ -63,7 +63,7 @@ export const contactService = {
   getStats: async (): Promise<ContactStats> => {
     const response = await fetch('/api/contacts/stats', { cache: 'no-store' });
     if (!response.ok) {
-      return { total: 0, optIn: 0, optOut: 0 };
+      throw new Error(`${response.status}: Falha ao buscar estatísticas dos contatos`);
     }
     return response.json();
   },
