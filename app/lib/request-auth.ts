@@ -1,4 +1,3 @@
-import type { NextRequest } from 'next/server'
 import { type AuthResult, unauthorizedResponse, verifyApiKey } from '@/lib/auth'
 import { validateSession } from '@/lib/user-auth'
 
@@ -10,7 +9,7 @@ import { validateSession } from '@/lib/user-auth'
  * Security goal: defense-in-depth for critical endpoints (PII, destructive actions),
  * even if Proxy rules change or a route is accidentally exposed.
  */
-export async function requireSessionOrApiKey(request: NextRequest) {
+export async function requireSessionOrApiKey(request: Request) {
   const hasApiKeyHeader =
     !!request.headers.get('authorization') || !!request.headers.get('x-api-key')
 

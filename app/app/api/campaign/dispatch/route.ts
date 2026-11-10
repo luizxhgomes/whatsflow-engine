@@ -11,7 +11,8 @@ import { getActiveSuppressionsByPhone } from '@/lib/phone-suppressions'
 import { fetchWithTimeout, safeJson } from '@/lib/server-http'
 
 import { CampaignStatus, ContactStatus } from '@/types'
-import { unauthorizedResponse, verifyApiKey } from '@/lib/auth'
+import { unauthorizedResponse, verifyQStashRequest } from '@/lib/auth'
+import { requireSessionOrApiKey } from '@/lib/request-auth'
 import { createHash } from 'crypto'
 
 interface DispatchContact {
@@ -175,16 +176,13 @@ async function fetchSingleTemplateFromMeta(params: {
 // Trigger campaign dispatch workflow
 export async function POST(request: NextRequest) {
   const bodyText = await request.text()
-  const signature = request.headers.get('upstash-signature')
-  const cookieHeader = request.headers.get('cookie') || ''
-  const hasSession = cookieHeader.includes('whatsflow_session=')
-
-  // Auth: QStash requests têm signature header, requests manuais usam session ou API key
-  if (!signature && !hasSession) {
-    const authResult = await verifyApiKey(request)
-    if (!authResult.valid) {
-      return unauthorizedResponse(authResult.error)
+  if (request.headers.has('upstash-signature')) {
+    if (!await verifyQStashRequest(request, bodyText)) {
+      return unauthorizedResponse('Invalid QStash signature')
     }
+  } else {
+    const denied = await requireSessionOrApiKey(request)
+    if (denied) return denied
   }
 
   const body = bodyText ? JSON.parse(bodyText) : {}

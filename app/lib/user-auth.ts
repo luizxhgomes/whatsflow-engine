@@ -83,7 +83,8 @@ async function getSetting(key: string): Promise<{ value: string; updated_at: str
     .eq('key', key)
     .single()
 
-  if (error || !data) return null
+  if (error && error.code !== 'PGRST116') throw new Error('Falha ao consultar autenticação')
+  if (!data) return null
   return data
 }
 
@@ -122,7 +123,8 @@ function pruneExpiredSessions(sessions: StoredSession[], now: Date): StoredSessi
   return sessions.filter(s => {
     const created = new Date(s.createdAt)
     if (Number.isNaN(created.getTime())) return false
-    return now.getTime() - created.getTime() <= maxAgeMs
+    const age = now.getTime() - created.getTime()
+    return age >= 0 && age <= maxAgeMs
   })
 }
 
@@ -482,10 +484,9 @@ async function createSession(): Promise<void> {
 /**
  * Validate current session
  */
-export async function validateSession(): Promise<boolean> {
+export async function validateSession(token?: string): Promise<boolean> {
   try {
-    const cookieStore = await cookies()
-    const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value
+    const sessionToken = token ?? (await cookies()).get(SESSION_COOKIE_NAME)?.value
 
     if (!sessionToken) return false
 
@@ -496,15 +497,6 @@ export async function validateSession(): Promise<boolean> {
     if (storedSessions) {
       const pruned = pruneExpiredSessions(storedSessions, now)
       const found = pruned.some(s => s.token === sessionToken)
-
-      // Best-effort: se havia sessões expiradas, compacta a lista.
-      if (pruned.length !== storedSessions.length) {
-        try {
-          await setStoredSessions(pruned.slice(-50))
-        } catch {
-          // ignore
-        }
-      }
 
       if (!found) return false
       return true
@@ -519,8 +511,7 @@ export async function validateSession(): Promise<boolean> {
 
     // Check if session is expired
     const sessionAge = (now.getTime() - updatedAt.getTime()) / 1000
-    if (!Number.isNaN(sessionAge) && sessionAge > SESSION_MAX_AGE) {
-      await logoutUser()
+    if (!Number.isFinite(sessionAge) || sessionAge < 0 || sessionAge > SESSION_MAX_AGE) {
       return false
     }
 

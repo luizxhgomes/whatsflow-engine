@@ -7,6 +7,7 @@
  */
 
 import { NextResponse } from 'next/server'
+import { requireSessionOrApiKey } from '@/lib/request-auth'
 import { settingsDb } from '@/lib/supabase-db'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import {
@@ -40,6 +41,8 @@ function isLocalhostUrl(value: string | null): boolean {
  * GET - Retorna status das chaves e URL do endpoint
  */
 export async function GET(request: Request) {
+  const denied = await requireSessionOrApiKey(request)
+  if (denied) return denied
   try {
     if (!isSupabaseConfigured()) {
       return NextResponse.json({ error: 'Supabase nao configurado' }, { status: 400 })
@@ -119,6 +122,8 @@ export async function GET(request: Request) {
  * - publicKey: string (importar chave existente)
  */
 export async function POST(request: Request) {
+  const denied = await requireSessionOrApiKey(request)
+  if (denied) return denied
   try {
     if (!isSupabaseConfigured()) {
       return NextResponse.json({ error: 'Supabase nao configurado' }, { status: 400 })
@@ -207,7 +212,9 @@ export async function POST(request: Request) {
 /**
  * DELETE - Remove chaves configuradas
  */
-export async function DELETE() {
+export async function DELETE(request: Request) {
+  const denied = await requireSessionOrApiKey(request)
+  if (denied) return denied
   try {
     if (!isSupabaseConfigured()) {
       return NextResponse.json({ error: 'Supabase nao configurado' }, { status: 400 })
