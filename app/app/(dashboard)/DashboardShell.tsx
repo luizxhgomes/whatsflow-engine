@@ -93,11 +93,13 @@ export function DashboardShell({
     const { isDevMode } = useDevMode()
 
     // WhatsApp onboarding progress hook (localStorage - apenas estado de UI)
-    // NOTA: A decisão de mostrar o modal vem do banco (isOnboardingCompletedInDb)
+    // O banco informa a conclusão; o progresso local guarda a preferência de adiar o guia.
     const {
         progress: onboardingProgress,
+        isLoaded: isOnboardingProgressLoaded,
         shouldShowChecklist,
         completeOnboarding,
+        dismissChecklist,
     } = useOnboardingProgress()
 
     // Estado para forçar abertura do modal em um step específico (ex: vindo do checklist)
@@ -385,9 +387,9 @@ export function DashboardShell({
     }
 
     // Determina se deve mostrar o modal de onboarding do WhatsApp
-    // Mostra quando: infra OK E onboarding não marcado como completo no banco
-    // Só mostra modal de onboarding após carregar status do banco (evita flash)
+    // Aguarda o banco e a preferência local para não reabrir o guia que foi adiado.
     const showWhatsAppOnboarding = !needsSetup && !isOnboardingStatusLoading && !isOnboardingCompletedInDb
+        && isOnboardingProgressLoaded && !onboardingProgress.isChecklistDismissed
 
     // Se WhatsApp já conectado mas onboarding não completo, força ir para step de webhook
     const onboardingForceStep = isWhatsAppConnected && !isOnboardingCompletedInDb
@@ -577,6 +579,7 @@ export function DashboardShell({
                         onSaveCredentials={handleSaveCredentials}
                         onMarkComplete={handleMarkOnboardingComplete}
                         forceStep={onboardingForceStep}
+                        onClose={dismissChecklist}
                     />
                 )}
 

@@ -167,7 +167,7 @@ interface OnboardingModalProps {
   onMarkComplete: () => Promise<void>;
   /** Força exibição do modal em um step específico (ex: 'configure-webhook') */
   forceStep?: OnboardingStep;
-  /** Callback para fechar o modal (limpa forceStep no pai) */
+  /** Callback para adiar o guia ou fechar o tutorial, sem concluir a configuração */
   onClose?: () => void;
   /** Modo tutorial: mostra só o conteúdo + botão fechar, sem navegação */
   tutorialMode?: boolean;
@@ -387,13 +387,12 @@ export function OnboardingModal({ isConnected, onSaveCredentials, onMarkComplete
   if (!shouldShow) return null;
 
   return (
-    <Dialog open={true}>
+    <Dialog open={true} onOpenChange={(open) => !open && onClose?.()}>
       <DialogContent
         className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto"
         overlayClassName="bg-black/80 backdrop-blur-sm"
-        showCloseButton={false}
+        showCloseButton={true}
         onPointerDownOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
       >
         {currentStep === 'welcome' ? (
           <>
@@ -417,6 +416,15 @@ export function OnboardingModal({ isConnected, onSaveCredentials, onMarkComplete
         )}
 
         {renderStep()}
+
+        <div className="space-y-2 border-t border-zinc-800 pt-4">
+          <Button type="button" variant="outline" className="w-full" onClick={onClose}>
+            Explorar o painel
+          </Button>
+          <p className="text-center text-sm text-zinc-400">
+            Para enviar e receber mensagens, conclua a conexão do WhatsApp em Configurações.
+          </p>
+        </div>
       </DialogContent>
     </Dialog>
   );
