@@ -122,8 +122,8 @@ test('real Neon: dry-run, apply, rerun, CRUD, RPC, constraints and role isolatio
     const marker = `migration-smoke-${randomUUID()}`;
     await client.query('BEGIN');
     try {
-      // PG18 grants creators ADMIN without SET; impersonation permission is rolled back with fixtures.
-      await client.query('GRANT service_role, anon, anonymous, authenticated TO CURRENT_USER WITH SET TRUE');
+      // The Data API grants SET for its roles; only our local roles need temporary impersonation.
+      await client.query('GRANT service_role, anon TO CURRENT_USER WITH SET TRUE');
       await client.query('SET LOCAL ROLE service_role');
       const contact = (await client.query('INSERT INTO public.contacts (name, phone) VALUES ($1, $2) RETURNING id', [marker, marker])).rows[0];
       assert.match(contact.id, /^ct_/);

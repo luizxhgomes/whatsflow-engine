@@ -1,3 +1,4 @@
+-- Provision Neon Data API before this schema; Neon owns anonymous/authenticated.
 -- Run only through infra/migrate-neon.mjs, inside its transaction.
 -- Rollback before COMMIT restores all bootstrap and migration changes.
 CREATE SCHEMA IF NOT EXISTS extensions;
@@ -7,7 +8,10 @@ DO $$
 DECLARE
   role_name text;
 BEGIN
-  FOREACH role_name IN ARRAY ARRAY['anon', 'anonymous', 'authenticated', 'service_role'] LOOP
+  IF (SELECT count(*) FROM pg_roles WHERE rolname IN ('anonymous', 'authenticated')) <> 2 THEN
+    RAISE EXCEPTION 'Provision Neon Data API before migrating: anonymous/authenticated roles are required';
+  END IF;
+  FOREACH role_name IN ARRAY ARRAY['anon', 'service_role'] LOOP
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = role_name) THEN
       EXECUTE format('CREATE ROLE %I NOLOGIN', role_name);
     END IF;
