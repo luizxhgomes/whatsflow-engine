@@ -43,8 +43,16 @@ export async function proxy(request: NextRequest) {
     // Neon verifies server JWTs using this public key, including during setup.
     if (pathname === '/.well-known/jwks.json') return next()
 
+    // Setup creates an administrative session, so a prior cookie is not sufficient.
+    if (pathname === '/api/auth/setup') {
+        if (process.env.INSTALLER_ENABLED === 'false') return forbiddenResponse('Installer desabilitado')
+        const auth = await verifyAdminAccess(request)
+        return auth.valid ? next() : unauthorizedResponse(auth.error)
+    }
+
     const isInstallerPage = pathname === '/install' || pathname.startsWith('/install/')
-    const isInstallerApi = pathname === '/api/auth/setup' || pathname.startsWith('/api/installer/')
+    const isInstallerApi = pathname.startsWith('/api/installer/')
+    if (isInstallerApi && process.env.INSTALLER_ENABLED === 'false') return forbiddenResponse('Installer desabilitado')
     if (!hasMasterPassword) {
         if (isInstallerPage || isInstallerApi) return next()
         if (!isApiRoute) return NextResponse.redirect(new URL('/install', request.url))

@@ -14,6 +14,7 @@ function request(path: string, token?: string, headers: Record<string, string> =
 
 beforeEach(() => {
   vi.stubEnv('MASTER_PASSWORD', 'test-password')
+  vi.stubEnv('INSTALLER_ENABLED', 'true')
   vi.stubEnv('NODE_ENV', 'production')
   vi.stubEnv('WHATSFLOW_API_KEY', 'test-api-key')
   vi.stubEnv('WHATSFLOW_ADMIN_KEY', 'test-admin-key')
@@ -81,5 +82,36 @@ describe('signed private-media callback boundary', () => {
   ])('protects %s with %s', async (path, method) => {
     const response = await proxy(new NextRequest(`https://example.test${path}`, { method }))
     expect(response.status).toBe(401)
+  })
+})
+
+describe('setup bootstrap boundary', () => {
+  it.each(['', 'configured-password'])('requires admin proof for setup with MASTER_PASSWORD=%s', async password => {
+    vi.stubEnv('MASTER_PASSWORD', password)
+    expect((await proxy(request('/api/auth/setup'))).status).toBe(401)
+    expect((await proxy(request('/api/auth/setup', 'valid-session-token'))).status).toBe(401)
+    expect((await proxy(request('/api/auth/setup', undefined, { authorization: 'Bearer test-api-key' }))).status).toBe(401)
+    expect((await proxy(request('/api/auth/setup', undefined, { authorization: 'Bearer test-admin-key' }))).headers.get('x-middleware-next')).toBe('1')
+  })
+  it('blocks setup when installer is disabled, while keeping bootstrap JWKS public', async () => {
+    vi.stubEnv('MASTER_PASSWORD', '')
+    vi.stubEnv('INSTALLER_ENABLED', 'false')
+    expect((await proxy(request('/api/auth/setup', undefined, { authorization: 'Bearer test-admin-key' }))).status).toBe(403)
+    expect((await proxy(request('/.well-known/jwks.json'))).headers.get('x-middleware-next')).toBe('1')
+  })
+})
+
+describe('disabled installer boundary', () => {
+  it.each(['', 'configured-password'])('blocks installer APIs with MASTER_PASSWORD=%s', async password => {
+    vi.stubEnv('MASTER_PASSWORD', password)
+    vi.stubEnv('INSTALLER_ENABLED', 'false')
+    for (const path of ['/api/installer/bootstrap', '/api/installer/redis/validate', '/api/installer/qstash/validate']) {
+      expect((await proxy(request(path, 'valid-session-token', { authorization: 'Bearer test-admin-key' }))).status).toBe(403)
+    }
+    expect((await proxy(request('/.well-known/jwks.json'))).status).toBe(200)
+  })
+  it('preserves the enabled initial installer before a password exists', async () => {
+    vi.stubEnv('MASTER_PASSWORD', '')
+    expect((await proxy(request('/api/installer/bootstrap'))).status).toBe(200)
   })
 })

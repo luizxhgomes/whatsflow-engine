@@ -11,6 +11,7 @@
 
 import { cookies } from 'next/headers'
 import { supabase } from './supabase'
+import { verifyAdminAccess } from './auth'
 import { normalizePhoneNumber, validateAnyPhoneNumber } from './phone-formatter'
 
 function getFirstName(fullName: string): string {
@@ -212,8 +213,17 @@ export async function completeSetup(
   companyName: string,
   companyAdmin: string,
   email: string,
-  phone: string
+  phone: string,
+  request?: Pick<Request, 'headers'>
 ): Promise<UserAuthResult> {
+  // Guard the mutation itself, including callers that bypass the HTTP handler.
+  if (process.env.INSTALLER_ENABLED === 'false') {
+    return { success: false, error: 'Installer desabilitado' }
+  }
+  if (!request || !(await verifyAdminAccess(request)).valid) {
+    return { success: false, error: 'Acesso administrativo obrigatório' }
+  }
+
   // Validate inputs
   if (!companyName || companyName.trim().length < 2) {
     return { success: false, error: 'Nome da empresa deve ter pelo menos 2 caracteres' }
