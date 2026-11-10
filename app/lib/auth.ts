@@ -184,7 +184,7 @@ export async function verifyQStashRequest(request: Request, body: string): Promi
   try {
     const url = new URL(request.url)
     const publicBase = process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.WEBHOOK_BASE_URL?.trim()
-    if (publicBase) {
+    if (publicBase && ['localhost', '127.0.0.1', '[::1]', '0.0.0.0'].includes(url.hostname)) {
       const origin = new URL(publicBase)
       url.protocol = origin.protocol
       url.host = origin.host

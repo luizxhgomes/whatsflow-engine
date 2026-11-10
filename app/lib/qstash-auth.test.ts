@@ -32,3 +32,21 @@ it('never uses an untrusted forwarded host as the signed destination', async () 
   const req = new Request('http://localhost:3000/api/campaign/workflow', { headers: { 'upstash-signature': sign(key, 'https://attacker.test/api/campaign/workflow'), 'x-forwarded-host': 'attacker.test' } })
   expect(await verifyQStashRequest(req, body)).toBe(false)
 })
+
+it('preserves a signed preview URL when the configured app URL is production', async () => {
+  vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://production.example.test')
+  const previewUrl = 'https://whatsflow-preview.vercel.app/api/campaign/workflow?step=2'
+  const req = new Request(previewUrl, { headers: { 'upstash-signature': sign(key, previewUrl) } })
+  expect(await verifyQStashRequest(req, body)).toBe(true)
+})
+it.each(['localhost', '127.0.0.1', '[::1]', '0.0.0.0'])('normalizes only internal host %s, preserving path, query and public port', async host => {
+  vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://production.example.test:8443')
+  const path = '/api/campaign/workflow?step=2&run=test'
+  const req = new Request(`http://${host}:3000${path}`, { headers: { 'upstash-signature': sign(key, `https://production.example.test:8443${path}`) } })
+  expect(await verifyQStashRequest(req, body)).toBe(true)
+})
+it.each(['whatsflow-preview.vercel.app', 'localhost.attacker.test', 'attacker.localhost'])('rejects an external destination %s signed for the configured production domain', async host => {
+  vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://production.example.test')
+  const req = new Request(`https://${host}/api/campaign/workflow`, { headers: { 'upstash-signature': sign(key, 'https://production.example.test/api/campaign/workflow') } })
+  expect(await verifyQStashRequest(req, body)).toBe(false)
+})
