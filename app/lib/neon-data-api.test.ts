@@ -2,7 +2,7 @@
 import { execFileSync } from 'node:child_process'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { exportJWK, exportPKCS8, generateKeyPair, importJWK, jwtVerify, type JWK } from 'jose'
-import { getNeonDataApiClient } from './neon-data-api'
+import { getNeonDataApiClient, hasNeonDataApiConfiguration } from './neon-data-api'
 import { getSupabaseAdmin, getSupabaseBrowser, isSupabaseConfigured, supabase } from './supabase'
 
 let privateKey: string
@@ -17,6 +17,7 @@ beforeAll(async () => {
   publicJwk = await exportJWK(keys.publicKey)
 })
 beforeEach(() => {
+  vi.stubEnv('WHATSFLOW_POSTGREST_URL', '')
   vi.stubEnv('NEON_DATA_API_URL', 'https://data.example.test/project/rest/v1')
   vi.stubEnv('NEON_DATA_API_PRIVATE_KEY', privateKey)
   vi.stubEnv('NEON_DATA_API_PUBLIC_JWK', JSON.stringify(publicJwk))
@@ -228,7 +229,7 @@ describe('Neon transport during a React server render', () => {
     // A child selects React's actual server build, as Next does, without mocking React.cache.
     const source = `
       import { createRequire } from 'node:module'
-      import { getNeonDataApiClient } from ${JSON.stringify(new URL('./neon-data-api.ts', import.meta.url).href)}
+      import { getNeonDataApiClient, hasNeonDataApiConfiguration } from ${JSON.stringify(new URL('./neon-data-api.ts', import.meta.url).href)}
       const require = createRequire(import.meta.url)
       const React = require('react')
       const { createDedupeFetch } = require('next/dist/server/lib/dedupe-fetch')
@@ -297,5 +298,52 @@ describe('Request signal precedence', () => {
       if (override === 'explicit') expect(fetchMock.mock.calls[0][1].signal).toBe(explicitSignal)
     }
     expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+
+describe('server PostgREST URL override', () => {
+  it.each(['https://data.example.test/project/rest/v1', ''])('prioritizes the override with native endpoint %j', async nativeUrl => {
+    vi.stubEnv('WHATSFLOW_POSTGREST_URL', 'https://gateway.example.test/api/rest')
+    vi.stubEnv('NEON_DATA_API_URL', nativeUrl)
+    expect(isSupabaseConfigured()).toBe(true)
+    const result = await supabase.from('settings').select('key')
+    expect(result.error).toBeNull()
+    expect(calls[0].url.origin).toBe('https://gateway.example.test')
+    expect(calls[0].url.pathname).toBe('/api/rest/settings')
+  })
+
+  it('keeps the native URL when no override is configured', async () => {
+    await supabase.from('settings').select('key')
+    expect(calls[0].url.origin).toBe('https://data.example.test')
+    expect(calls[0].url.pathname).toBe('/project/rest/v1/settings')
+  })
+
+  it('fails closed for override-only partial configuration even with valid legacy credentials', () => {
+    vi.stubEnv('WHATSFLOW_POSTGREST_URL', 'https://gateway.example.test/api/rest')
+    vi.stubEnv('NEON_DATA_API_URL', '')
+    vi.stubEnv('NEON_DATA_API_PRIVATE_KEY', '')
+    vi.stubEnv('NEON_DATA_API_PUBLIC_JWK', '')
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://legacy.example.test')
+    vi.stubEnv('SUPABASE_SECRET_KEY', 'synthetic-legacy-key')
+    expect(hasNeonDataApiConfiguration()).toBe(true)
+    expect(isSupabaseConfigured()).toBe(false)
+    expect(getSupabaseAdmin()).toBeNull()
+    expect(() => supabase.from('settings')).toThrow()
+    expect(calls).toHaveLength(0)
+  })
+
+  it.each(['invalid-url', 'http://gateway.example.test/api/rest', 'https://gateway.example.test/api/rest?key=value'])('rejects invalid override %s without falling back to a valid native endpoint', invalidUrl => {
+    vi.stubEnv('WHATSFLOW_POSTGREST_URL', invalidUrl)
+    expect(() => getNeonDataApiClient()).toThrow('URL da Data API Neon inválida')
+    expect(calls).toHaveLength(0)
+  })
+
+  it('keeps override admin access server-only', () => {
+    vi.stubEnv('WHATSFLOW_POSTGREST_URL', 'https://gateway.example.test/api/rest')
+    vi.stubGlobal('window', {})
+    expect(getSupabaseAdmin()).toBeNull()
+    expect(getNeonDataApiClient()).toBeNull()
+    expect(calls).toHaveLength(0)
   })
 })

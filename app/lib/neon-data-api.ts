@@ -9,11 +9,11 @@ const KEY_ID = 'whatsflow-data-v1'
 let signingKey: { source: string; key: ReturnType<typeof importPKCS8> } | undefined
 
 export function hasNeonDataApiConfiguration(): boolean {
-  return !!(process.env.NEON_DATA_API_URL || process.env.NEON_DATA_API_PRIVATE_KEY || process.env.NEON_DATA_API_PUBLIC_JWK)
+  return !!(process.env.WHATSFLOW_POSTGREST_URL || process.env.NEON_DATA_API_URL || process.env.NEON_DATA_API_PRIVATE_KEY || process.env.NEON_DATA_API_PUBLIC_JWK)
 }
 
 export function isNeonDataApiConfigured(): boolean {
-  return typeof window === 'undefined' && !!(process.env.NEON_DATA_API_URL && process.env.NEON_DATA_API_PRIVATE_KEY)
+  return typeof window === 'undefined' && !!((process.env.WHATSFLOW_POSTGREST_URL || process.env.NEON_DATA_API_URL) && process.env.NEON_DATA_API_PRIVATE_KEY)
 }
 
 async function signAccessToken(source: string): Promise<string> {
@@ -39,7 +39,7 @@ export function getNeonDataApiClient(): DatabaseClient | null {
   if (!isNeonDataApiConfigured()) return null
   let base: URL
   try {
-    base = new URL(process.env.NEON_DATA_API_URL!)
+    base = new URL(process.env.WHATSFLOW_POSTGREST_URL || process.env.NEON_DATA_API_URL!)
     if (base.protocol !== 'https:' || base.username || base.password || base.search || base.hash) throw new Error()
   } catch {
     throw new Error('URL da Data API Neon inválida')
