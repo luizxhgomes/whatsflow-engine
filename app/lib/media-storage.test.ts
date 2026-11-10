@@ -60,3 +60,9 @@ describe('private media upload', () => {
     expect(mocks.put).not.toHaveBeenCalled()
   })
 })
+
+it('normalizes the legacy image/jpg MIME accepted by template previews', async () => {
+  const data = Buffer.from('synthetic jpeg')
+  await uploadPrivateMedia('templates/example/preview.jpg', data, 'image/jpg')
+  expect(mocks.put).toHaveBeenCalledWith('templates/example/preview.jpg', data, expect.objectContaining({ contentType: 'image/jpeg' }))
+})

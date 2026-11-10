@@ -1,4 +1,4 @@
-import { get, head, BlobNotFoundError } from '@vercel/blob'
+import { get, head, BlobError, BlobNotFoundError } from '@vercel/blob'
 import { verifySignedMediaUrl } from '@/lib/media-storage'
 
 export const dynamic = 'force-dynamic'
@@ -30,6 +30,13 @@ async function serve(request: Request, metadataOnly: boolean) {
     }
     return new Response(result.stream, { status: headers.has('content-range') ? 206 : 200, headers })
   } catch (error) {
+    // SDK 2.9 exposes failed GET status only in BlobError.message.
+    if (error instanceof BlobError && /Failed to fetch blob: 416(?: |$)/.test(error.message)) {
+      const metadata = await head(path).catch(() => null)
+      if (metadata) return new Response(null, { status: 416, headers: {
+        'Content-Range': `bytes */${metadata.size}`, 'Cache-Control': 'private, no-store',
+      } })
+    }
     return Response.json({ error: 'Não foi possível carregar a mídia' }, { status: error instanceof BlobNotFoundError ? 404 : 502 })
   }
 }

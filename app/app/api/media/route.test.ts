@@ -1,8 +1,9 @@
 import { beforeEach, afterEach, it, expect, vi } from 'vitest'
 import { createSignedMediaUrl } from '@/lib/media-storage'
 import { GET, HEAD } from './route'
+import { BlobError } from '@vercel/blob'
 const mocks = vi.hoisted(() => ({ get: vi.fn(), head: vi.fn() }))
-vi.mock('@vercel/blob', () => ({ ...mocks, put: vi.fn(), BlobNotFoundError: class extends Error {} }))
+vi.mock('@vercel/blob', () => ({ ...mocks, put: vi.fn(), BlobNotFoundError: class extends Error {}, BlobError: class extends Error {} }))
 beforeEach(() => {
   vi.clearAllMocks()
   vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://whatsflow.example.test')
@@ -43,4 +44,14 @@ it('keeps storage failures opaque and reports missing objects', async () => {
   const failure = await GET(new Request(url))
   expect(failure.status).toBe(502)
   expect(await failure.text()).not.toContain('private-storage-secret-value')
+})
+
+it('preserves unsatisfiable range status and total object size', async () => {
+  mocks.get.mockRejectedValue(new BlobError('Failed to fetch blob: 416 Range Not Satisfiable'))
+  mocks.head.mockResolvedValue({ contentType: 'image/png', size: 9 })
+  const response = await GET(new Request(createSignedMediaUrl('templates/test/image.png').url, { headers: { Range: 'bytes=99-' } }))
+  expect(response.status).toBe(416)
+  expect(response.headers.get('content-range')).toBe('bytes */9')
+  expect(response.headers.get('cache-control')).toBe('private, no-store')
+  expect(await response.text()).toBe('')
 })

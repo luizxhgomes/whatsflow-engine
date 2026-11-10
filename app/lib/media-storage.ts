@@ -47,6 +47,7 @@ export function verifySignedMediaUrl(url: URL): string | null {
 }
 
 export async function uploadPrivateMedia(path: string, data: Buffer, contentType: string) {
+  if (contentType === 'image/jpg') contentType = 'image/jpeg'
   if (!validPath(path) || !MIME_TYPES.has(contentType) || data.byteLength === 0 || data.byteLength > MAX_BYTES) {
     throw new Error('Arquivo de mídia inválido ou acima do limite')
   }
