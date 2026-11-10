@@ -2,7 +2,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 import { inboxService } from './inboxService'
 
-import { createMockFetchResponse, setupFetchMock } from '@/tests/helpers'
+function createMockFetchResponse(data: unknown, options: Partial<Response> = {}) {
+  return { ok: true, status: 200, json: async () => data, ...options }
+}
+function setupFetchMock() {
+  const fetchMock = vi.fn()
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
+}
 
 describe('inboxService', () => {
   const mockFetch = setupFetchMock()
@@ -13,6 +20,22 @@ describe('inboxService', () => {
 
   afterEach(() => {
     vi.resetAllMocks()
+  })
+
+  it('getUnreadCount consulta a contagem global autenticada', async () => {
+    mockFetch.mockResolvedValueOnce(createMockFetchResponse({ count: 151 }))
+    await expect(inboxService.getUnreadCount()).resolves.toBe(151)
+    expect(mockFetch).toHaveBeenCalledWith('/api/inbox/conversations?unreadCountOnly=true', { cache: 'no-store' })
+  })
+
+  it.each([401, 500])('getUnreadCount propaga HTTP %s sem inventar zero', async status => {
+    mockFetch.mockResolvedValueOnce(createMockFetchResponse({ error: 'Falha' }, { ok: false, status }))
+    await expect(inboxService.getUnreadCount()).rejects.toThrow(String(status))
+  })
+
+  it.each([{}, { count: null }, { count: -1 }, { count: '2' }])('getUnreadCount rejeita resposta inválida', async data => {
+    mockFetch.mockResolvedValueOnce(createMockFetchResponse(data))
+    await expect(inboxService.getUnreadCount()).rejects.toThrow('Contagem de conversas inválida')
   })
 
   it('listConversations deve montar query params', async () => {

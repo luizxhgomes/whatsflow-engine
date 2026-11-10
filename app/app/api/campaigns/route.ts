@@ -3,6 +3,8 @@ import { campaignDb, campaignContactDb } from '@/lib/supabase-db'
 import { CreateCampaignSchema, validateBody, formatZodErrors } from '@/lib/api-validation'
 import { Client as QStashClient } from '@upstash/qstash'
 import { fetchWithTimeout, safeText } from '@/lib/server-http'
+import { getSupabaseAdmin } from '@/lib/supabase'
+import { requireSessionOrApiKey } from '@/lib/request-auth'
 
 // Force dynamic - NO caching at all
 export const dynamic = 'force-dynamic'
@@ -22,6 +24,26 @@ const localScheduleRegistry: Map<string, NodeJS.Timeout> =
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url)
+    if (url.searchParams.get('statusOnly') === 'true') {
+      const denied = await requireSessionOrApiKey(request)
+      if (denied) return denied
+
+      const db = getSupabaseAdmin()
+      if (!db) throw new Error('Banco de dados não configurado')
+      const campaigns = []
+      const pageSize = 1000
+      for (let offset = 0; ; offset += pageSize) {
+        const { data, error } = await db.from('campaigns')
+          .select('id,name,status,completed_at')
+          .order('id')
+          .range(offset, offset + pageSize - 1)
+        if (error) throw error
+        if (!data) throw new Error('Estados das campanhas indisponíveis')
+        campaigns.push(...data)
+        if (data.length < pageSize) break
+      }
+      return NextResponse.json(campaigns, { headers: { 'Cache-Control': 'private, no-store' } })
+    }
     const limitParam = url.searchParams.get('limit')
     const offsetParam = url.searchParams.get('offset')
     const search = url.searchParams.get('search') || ''

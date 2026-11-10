@@ -5,6 +5,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { listConversations } from '@/lib/inbox/inbox-service'
+import { getSupabaseAdmin } from '@/lib/supabase'
+import { requireSessionOrApiKey } from '@/lib/request-auth'
 import type { ConversationStatus, ConversationMode } from '@/types'
 
 const querySchema = z.object({
@@ -31,6 +33,22 @@ const querySchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
+
+    if (searchParams.get('unreadCountOnly') === 'true') {
+      const denied = await requireSessionOrApiKey(request)
+      if (denied) return denied
+
+      const db = getSupabaseAdmin()
+      if (!db) throw new Error('Banco de dados não configurado')
+      const { count, error } = await db
+        .from('inbox_conversations')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'open')
+        .gt('unread_count', 0)
+      if (error) throw error
+      if (!Number.isSafeInteger(count) || count === null || count < 0) throw new Error('Contagem de conversas indisponível')
+      return NextResponse.json({ count }, { headers: { 'Cache-Control': 'private, no-store' } })
+    }
 
     const parsed = querySchema.safeParse({
       status: searchParams.get('status') || undefined,

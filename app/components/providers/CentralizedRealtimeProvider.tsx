@@ -1,23 +1,8 @@
 'use client'
 
-/**
- * CentralizedRealtimeProvider
- *
- * Centralizes Supabase Realtime subscriptions to avoid multiple channels
- * being created for the same tables. Components can subscribe to table
- * changes through the context instead of creating their own channels.
- *
- * Benefits:
- * - Single channel for all table subscriptions
- * - Debounced invalidations to batch rapid updates
- * - Automatic cleanup on unmount
- * - Reduced Supabase connection overhead
- */
+/** Compatibility context for the API polling providers. */
 
-import { createContext, useContext, useEffect, useMemo, useRef, useCallback, type ReactNode } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { getSupabaseBrowser } from '@/lib/supabase'
-import { debounce } from '@/lib/utils'
+import { createContext, useContext, useEffect, type ReactNode } from 'react'
 
 // =============================================================================
 // TYPES
@@ -71,160 +56,15 @@ interface CentralizedRealtimeProviderProps {
   debounceMs?: number
 }
 
-export function CentralizedRealtimeProvider({
-  children,
-  // T072: Added inbox tables for real-time updates
-  tables = ['campaigns', 'contacts', 'templates', 'flows', 'inbox_conversations', 'inbox_messages'],
-  debounceMs = 200,
-}: CentralizedRealtimeProviderProps) {
-  const queryClient = useQueryClient()
-  const subscribersRef = useRef<Map<string, Set<SubscriptionCallback>>>(new Map())
-  const isConnectedRef = useRef(false)
-  // Tipo do channel do Supabase Realtime
-  const channelRef = useRef<ReturnType<NonNullable<ReturnType<typeof getSupabaseBrowser>>['channel']> | null>(null)
+// Existing consumers retain the contract; authenticated queries own their refresh interval.
+const pollingContext: CentralizedRealtimeContextValue = {
+  subscribe: () => () => {},
+  isConnected: false,
+}
 
-  // Notify all subscribers for a table
-  const notifySubscribers = useCallback((table: string, event: RealtimeEvent) => {
-    const subs = subscribersRef.current.get(table)
-    if (subs && subs.size > 0) {
-      subs.forEach(callback => {
-        try {
-          callback(event)
-        } catch (err) {
-          console.error(`[CentralizedRealtime] Subscriber error for ${table}:`, err)
-        }
-      })
-    }
-  }, [])
-
-  // Debounced query invalidation helper
-  // Acumula todas as query keys chamadas dentro da janela de debounce
-  // e invalida todas de uma vez. Resolve o bug onde chamadas sequenciais
-  // (ex: ['campaigns'] seguido de ['campaignStats']) cancelavam as anteriores.
-  const pendingKeysRef = useRef<Set<string>>(new Set())
-  const debouncedFlush = useMemo(
-    () => debounce(() => {
-      const keys = Array.from(pendingKeysRef.current)
-      pendingKeysRef.current.clear()
-      for (const key of keys) {
-        queryClient.invalidateQueries({ queryKey: [key] })
-      }
-    }, debounceMs),
-    [queryClient, debounceMs]
-  )
-  const debouncedInvalidate = useCallback((queryKey: string[]) => {
-    pendingKeysRef.current.add(queryKey[0])
-    debouncedFlush()
-  }, [debouncedFlush])
-
-  // Setup realtime channel
-  useEffect(() => {
-    const supabase = getSupabaseBrowser()
-    if (!supabase) {
-      // Supabase não configurado - normal durante setup wizard ou se env vars ausentes
-      return
-    }
-
-    // Create a single channel for all tables
-    const channel = supabase.channel('centralized-realtime-v1')
-    channelRef.current = channel
-
-    // Subscribe to each table
-    tables.forEach(table => {
-      channel.on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table },
-        (payload) => {
-          const event: RealtimeEvent = {
-            table,
-            eventType: payload.eventType as RealtimeEventType,
-            new: payload.new as Record<string, unknown> | null,
-            old: payload.old as Record<string, unknown> | null,
-          }
-
-          // Notify subscribers
-          notifySubscribers(table, event)
-
-          // Default behavior: invalidate related queries
-          debouncedInvalidate([table])
-
-          // Also invalidate stats queries
-          if (table === 'contacts') {
-            debouncedInvalidate(['contactStats'])
-            debouncedInvalidate(['contactTags'])
-          }
-          if (table === 'campaigns') {
-            debouncedInvalidate(['campaignStats'])
-          }
-          // T072: Invalidate inbox queries on inbox table changes
-          if (table === 'inbox_conversations') {
-            debouncedInvalidate(['inbox-conversations'])
-            debouncedInvalidate(['inbox-unread-count'])
-          }
-          if (table === 'inbox_messages') {
-            debouncedInvalidate(['inbox-messages'])
-            // Also invalidate unread count when new messages arrive
-            debouncedInvalidate(['inbox-unread-count'])
-          }
-        }
-      )
-    })
-
-    // Activate channel
-    let hasLoggedError = false
-    channel.subscribe((status) => {
-      isConnectedRef.current = status === 'SUBSCRIBED'
-      if (status === 'SUBSCRIBED') {
-        hasLoggedError = false // Reset para logar novamente se reconectar e falhar depois
-      } else if ((status === 'CLOSED' || status === 'CHANNEL_ERROR') && !hasLoggedError) {
-        // Loga apenas uma vez para não poluir o console
-        console.warn('[Realtime] Conexão falhou. Tentando reconectar automaticamente...')
-        hasLoggedError = true
-      }
-    })
-
-    // Cleanup
-    return () => {
-      debouncedFlush.cancel?.()
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current)
-        channelRef.current = null
-      }
-      isConnectedRef.current = false
-    }
-  }, [tables.join(','), notifySubscribers, debouncedInvalidate, debouncedFlush])
-
-  // Subscribe function for consumers
-  const subscribe = useCallback((table: string, callback: SubscriptionCallback): (() => void) => {
-    if (!subscribersRef.current.has(table)) {
-      subscribersRef.current.set(table, new Set())
-    }
-
-    subscribersRef.current.get(table)!.add(callback)
-
-    // Return unsubscribe function
-    return () => {
-      const subs = subscribersRef.current.get(table)
-      if (subs) {
-        subs.delete(callback)
-        if (subs.size === 0) {
-          subscribersRef.current.delete(table)
-        }
-      }
-    }
-  }, [])
-
-  // Memoize context value to prevent re-renders
-  const value = useMemo<CentralizedRealtimeContextValue>(
-    () => ({
-      subscribe,
-      isConnected: isConnectedRef.current,
-    }),
-    [subscribe]
-  )
-
+export function CentralizedRealtimeProvider({ children }: CentralizedRealtimeProviderProps) {
   return (
-    <CentralizedRealtimeContext.Provider value={value}>
+    <CentralizedRealtimeContext.Provider value={pollingContext}>
       {children}
     </CentralizedRealtimeContext.Provider>
   )

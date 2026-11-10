@@ -125,6 +125,14 @@ async function getConversation(id: string): Promise<InboxConversation> {
   return response.json()
 }
 
+async function getUnreadCount(): Promise<number> {
+  const response = await fetch('/api/inbox/conversations?unreadCountOnly=true', { cache: 'no-store' })
+  if (!response.ok) throw new Error(`${response.status}: Falha ao buscar conversas não lidas`)
+  const { count } = await response.json()
+  if (!Number.isSafeInteger(count) || count < 0) throw new Error('Contagem de conversas inválida')
+  return count
+}
+
 async function updateConversation(id: string, params: UpdateConversationParams): Promise<InboxConversation> {
   const response = await fetch(`/api/inbox/conversations/${id}`, {
     method: 'PATCH',
@@ -380,6 +388,7 @@ async function resumeAutomation(conversationId: string): Promise<ResumeResult> {
 export const inboxService = {
   // Conversations
   listConversations,
+  getUnreadCount,
   getConversation,
   updateConversation,
   deleteConversation,

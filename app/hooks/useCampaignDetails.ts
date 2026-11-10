@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { campaignService } from '../services';
 import { useCampaignRealtime } from './useCampaignRealtime';
 import { Campaign, CampaignStatus, MessageStatus, Message } from '../types';
-import { getPollingInterval, isLargeCampaign } from '@/lib/constants';
 import {
   mergeCampaignCountersMonotonic,
   mergeMessageStatsMonotonic,
@@ -34,25 +33,12 @@ export const useCampaignDetailsController = () => {
   // Local type alias for service response (extends business module type)
   type ServiceMessagesResponse = Awaited<ReturnType<(typeof campaignService)['getMessages']>>
 
-  // Refs para merge monotônico (evita regressão visual quando broadcast chega antes do DB).
+  // Preserva contadores enquanto a API concilia as atualizações de entrega.
   const lastCampaignRef = useRef<Campaign | undefined>(undefined)
   const lastMessagesRef = useRef<ServiceMessagesResponse | undefined>(undefined)
   const loadMoreTokenRef = useRef(0)
 
-  // Warmup polling: nos primeiros 30s após carregar ID real, fazemos polling
-  // rápido para capturar a transição DRAFT → SENDING (Realtime não conecta para DRAFT)
-  const warmupStartRef = useRef<Record<string, number>>({})
-  const WARMUP_DURATION_MS = 30_000 // 30 segundos
-  const WARMUP_INTERVAL_MS = 3_000 // polling a cada 3s durante warmup
-
-  // Registra início do warmup quando ID muda para um ID real
-  useEffect(() => {
-    if (id && !id.startsWith('temp_') && !warmupStartRef.current[id]) {
-      warmupStartRef.current[id] = Date.now()
-    }
-  }, [id])
-
-  // Fetch campaign data (com warmup polling via função)
+  // Refresh persisted status throughout the lifetime of this page.
   const campaignQuery = useQuery<Campaign | undefined>({
     queryKey: ['campaign', id],
     queryFn: async () => {
@@ -61,35 +47,8 @@ export const useCampaignDetailsController = () => {
     },
     enabled: !!id && !id.startsWith('temp_'),
     staleTime: 5000,
-    // Warmup polling usando FUNÇÃO: TanStack Query chama esta função após cada fetch
-    // para determinar o próximo intervalo. Muito mais confiável que valor estático.
-    refetchInterval: (query) => {
-      const campaign = query.state.data
-      const campaignId = id
-
-      // Não faz polling se não tem ID real
-      if (!campaignId || campaignId.startsWith('temp_')) {
-        return false
-      }
-
-      // Verifica se está no período de warmup (30s desde que carregou este ID)
-      const warmupStart = warmupStartRef.current[campaignId]
-      if (!warmupStart) {
-        return false
-      }
-
-      const elapsed = Date.now() - warmupStart
-      const inWarmup = elapsed < WARMUP_DURATION_MS
-
-      // Se está em DRAFT e no warmup, faz polling
-      // Quando mudar para SENDING/COMPLETED, Realtime assume
-      if (inWarmup && campaign?.status === CampaignStatus.DRAFT) {
-        return WARMUP_INTERVAL_MS
-      }
-
-      // Fora do warmup ou não é DRAFT - para o polling
-      return false
-    },
+    refetchInterval: 10_000,
+    refetchIntervalInBackground: false,
     select: (fresh) => {
       const merged = mergeCampaignCountersMonotonic(lastCampaignRef.current, fresh)
       lastCampaignRef.current = merged
@@ -106,7 +65,7 @@ export const useCampaignDetailsController = () => {
 
   const campaign = (isTemp ? cachedTempCampaign : (campaignQuery.data as Campaign | undefined))
 
-  // Real-time updates via Supabase Realtime with smart debounce
+  // Polling does not report an active Realtime connection.
   const { isConnected: isRealtimeConnected, shouldShowRefreshButton, telemetry } = useCampaignRealtime({
     campaignId: (!isTemp ? id : undefined),
     status: campaign?.status,
@@ -114,20 +73,12 @@ export const useCampaignDetailsController = () => {
     completedAt: campaign?.completedAt ?? undefined,
   });
 
-  // Polling logic:
-  // - Connected via Realtime: 60s backup polling
-  // - Disconnected (Realtime caiu): 10s fallback polling
-  // - Large campaigns (>= 10k): polling only
+  // Metrics and messages refresh while campaign delivery may still change.
   const isActiveCampaign = campaign?.status === CampaignStatus.SENDING ||
     campaign?.status === CampaignStatus.SCHEDULED ||
     campaign?.status === CampaignStatus.COMPLETED;
 
-  const isLarge = isLargeCampaign(campaign?.recipients || 0);
-
-  const pollingInterval = useMemo(() => {
-    if (!isActiveCampaign) return false as const;
-    return getPollingInterval(isRealtimeConnected, isLarge);
-  }, [isActiveCampaign, isLarge, isRealtimeConnected]);
+  const pollingInterval = isActiveCampaign ? 10_000 : false;
 
   const metricsQuery = useQuery<any | null>({
     queryKey: ['campaignMetrics', id],
@@ -135,6 +86,7 @@ export const useCampaignDetailsController = () => {
     enabled: !!id && !id.startsWith('temp_'),
     staleTime: 5000,
     refetchInterval: pollingInterval,
+    refetchIntervalInBackground: false,
   })
 
   // A API suporta até 100 por página. Para campanhas pequenas isso evita a sensação de
@@ -167,8 +119,8 @@ export const useCampaignDetailsController = () => {
     }),
     enabled: !!id && !id.startsWith('temp_'),
     staleTime: 5000,
-    // Backup polling only while connected and active
     refetchInterval: pollingInterval,
+    refetchIntervalInBackground: false,
     select: (fresh) => {
       const merged = mergeMessageStatsMonotonic(lastMessagesRef.current, fresh)
       // merged is always defined when fresh is defined (select only called with valid data)

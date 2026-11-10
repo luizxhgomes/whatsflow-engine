@@ -52,6 +52,13 @@ export interface CampaignListResult {
   offset: number;
 }
 
+export interface CampaignStatusSnapshot {
+  id: string;
+  name: string;
+  status: CampaignStatus;
+  completed_at: string | null;
+}
+
 interface RealMessageStatus {
   phone: string;
   status: 'sent' | 'failed';
@@ -117,6 +124,12 @@ export interface CampaignPrecheckResult {
 }
 
 export const campaignService = {
+  getStatuses: async (): Promise<CampaignStatusSnapshot[]> => {
+    const response = await fetch('/api/campaigns?statusOnly=true', { cache: 'no-store' });
+    if (!response.ok) throw new Error(`${response.status}: Falha ao buscar estados das campanhas`);
+    return response.json();
+  },
+
   list: async (params: CampaignListParams): Promise<CampaignListResult> => {
     const searchParams = new URLSearchParams();
     searchParams.set('limit', String(params.limit));

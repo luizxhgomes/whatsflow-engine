@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { FormInput, ArrowUpRight, Users, Percent } from 'lucide-react';
 import { PrefetchLink } from '@/components/ui/PrefetchLink';
-import { getSupabaseBrowser } from '@/lib/supabase';
 import type { Campaign } from '@/types';
 
 interface CampaignFlowPanelProps {
@@ -13,11 +12,10 @@ interface CampaignFlowPanelProps {
 /**
  * Painel de métricas do Flow/MiniApp
  * Exibe informações sobre submissões de formulário quando a campanha usa um Flow
- * Com Realtime para atualização automática do contador
+ * O contador acompanha a campanha atualizada pela API.
  */
 export const CampaignFlowPanel: React.FC<CampaignFlowPanelProps> = ({ campaign }) => {
-  const [submissionsCount, setSubmissionsCount] = useState(campaign.submissionsCount ?? 0);
-  const [isLive, setIsLive] = useState(false);
+  const submissionsCount = campaign.submissionsCount ?? 0;
 
   // Só exibe se a campanha tem Flow
   if (!campaign.flowId) return null;
@@ -29,41 +27,6 @@ export const CampaignFlowPanel: React.FC<CampaignFlowPanelProps> = ({ campaign }
     ? ((submissionsCount / recipients) * 100).toFixed(1)
     : '0.0';
 
-  // Realtime subscription para novas submissões
-  useEffect(() => {
-    const supabaseClient = getSupabaseBrowser();
-    if (!supabaseClient) return;
-
-    const channel = supabaseClient
-      .channel(`flow_submissions:campaign:${campaign.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'flow_submissions',
-          filter: `campaign_id=eq.${campaign.id}`,
-        },
-        () => {
-          setSubmissionsCount((prev) => prev + 1);
-        }
-      )
-      .subscribe((status) => {
-        setIsLive(status === 'SUBSCRIBED');
-      });
-
-    return () => {
-      supabaseClient.removeChannel(channel);
-    };
-  }, [campaign.id]);
-
-  // Sync com prop quando mudar
-  useEffect(() => {
-    if (typeof campaign.submissionsCount === 'number') {
-      setSubmissionsCount(campaign.submissionsCount);
-    }
-  }, [campaign.submissionsCount]);
-
   return (
     <div className="bg-zinc-900/50 border border-white/10 rounded-xl p-6 mt-6">
       <div className="flex items-center justify-between mb-4">
@@ -74,12 +37,6 @@ export const CampaignFlowPanel: React.FC<CampaignFlowPanelProps> = ({ campaign }
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-white">MiniApp / Flow</h3>
-              {isLive && (
-                <span className="inline-flex items-center gap-1.5 text-xs text-primary-400">
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary-500" />
-                  Ao vivo
-                </span>
-              )}
             </div>
             <p className="text-sm text-gray-400">{campaign.flowName || 'Formulário interativo'}</p>
           </div>

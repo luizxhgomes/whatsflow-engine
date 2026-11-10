@@ -2,7 +2,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { campaignService, CampaignListParams, CampaignListResult, CampaignPrecheckResult } from './campaignService'
 import { Campaign, CampaignStatus, MessageStatus } from '../types'
 
-import { createMockFetchResponse, setupFetchMock } from '@/tests/helpers'
+function createMockFetchResponse(data: unknown, options: Partial<Response> = {}) {
+  return { ok: true, status: 200, json: async () => data, text: async () => JSON.stringify(data), ...options }
+}
+function setupFetchMock() {
+  const fetchMock = vi.fn()
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
+}
 
 // Mock console methods to avoid noise in tests
 vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -35,6 +42,20 @@ describe('campaignService', () => {
 
   afterEach(() => {
     vi.resetAllMocks()
+  })
+
+  describe('getStatuses', () => {
+    it('consulta apenas os estados em rota própria sem cache', async () => {
+      const snapshots = [{ id: 'c1', name: 'Teste', status: CampaignStatus.SENDING, completed_at: null }]
+      mockFetch.mockResolvedValueOnce(createMockFetchResponse(snapshots))
+      await expect(campaignService.getStatuses()).resolves.toEqual(snapshots)
+      expect(mockFetch).toHaveBeenCalledWith('/api/campaigns?statusOnly=true', { cache: 'no-store' })
+    })
+
+    it.each([401, 500])('propaga HTTP %s em vez de reiniciar baseline com lista vazia', async status => {
+      mockFetch.mockResolvedValueOnce(createMockFetchResponse({ error: 'Falha' }, { ok: false, status }))
+      await expect(campaignService.getStatuses()).rejects.toThrow(String(status))
+    })
   })
 
   // =============================================================================
