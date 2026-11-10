@@ -6,8 +6,8 @@
   "scope": "/atendimento",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#18181b",
-  "theme_color": "#22c55e",
+  "background_color": "#0c1512",
+  "theme_color": "#156f58",
   "icons": [
     {
       "src": "/icons/icon-192.png",

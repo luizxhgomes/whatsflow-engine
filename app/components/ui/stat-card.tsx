@@ -1,5 +1,4 @@
 import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
 import { LucideIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -47,40 +46,15 @@ import { Container } from "./container"
  * ```
  */
 
-const colorStyles = {
-  emerald: {
-    iconBg: "bg-red-500/20",
-    iconColor: "text-red-600 dark:text-red-400",
-    iconGlow: "shadow-red-500/20",
-  },
-  blue: {
-    iconBg: "bg-orange-500/20",
-    iconColor: "text-orange-600 dark:text-orange-400",
-    iconGlow: "shadow-orange-500/20",
-  },
-  purple: {
-    iconBg: "bg-orange-500/20",
-    iconColor: "text-orange-600 dark:text-orange-400",
-    iconGlow: "shadow-orange-500/20",
-  },
-  red: {
-    iconBg: "bg-red-500/20",
-    iconColor: "text-red-600 dark:text-red-400",
-    iconGlow: "shadow-red-500/20",
-  },
-  amber: {
-    iconBg: "bg-amber-500/20",
-    iconColor: "text-amber-600 dark:text-amber-400",
-    iconGlow: "shadow-amber-500/20",
-  },
-  zinc: {
-    iconBg: "bg-zinc-500/20",
-    iconColor: "text-zinc-600 dark:text-zinc-400",
-    iconGlow: "shadow-zinc-500/20",
-  },
+const iconTones = {
+  emerald: "brand",
+  blue: "info",
+  purple: "neutral",
+  red: "error",
+  amber: "warning",
+  zinc: "neutral",
 } as const
-
-type StatColor = keyof typeof colorStyles
+type StatColor = keyof typeof iconTones
 
 export interface StatCardProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Título/label da métrica */
@@ -116,7 +90,16 @@ function StatCard({
   className,
   ...props
 }: StatCardProps) {
-  const styles = colorStyles[color]
+  const iconTile = (
+    <div
+      className="ds-icon-tile"
+      data-size={layout}
+      data-tone={iconTones[color]}
+      aria-hidden="true"
+    >
+      <Icon className="size-1/2" />
+    </div>
+  )
 
   if (loading) {
     return (
@@ -137,14 +120,7 @@ function StatCard({
       >
         <div className="flex items-center gap-4">
           {/* Icon */}
-          <div
-            className={cn(
-              "relative p-3 rounded-xl border border-[var(--ds-border-default)]",
-              styles.iconBg
-            )}
-          >
-            <Icon size={20} className={styles.iconColor} />
-          </div>
+          {iconTile}
 
           {/* Content */}
           <div className="flex-1 min-w-0">
@@ -170,14 +146,7 @@ function StatCard({
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div
-              className={cn(
-                "p-2 rounded-lg border border-[var(--ds-border-default)]",
-                styles.iconBg
-              )}
-            >
-              <Icon size={16} className={styles.iconColor} />
-            </div>
+            {iconTile}
             <p className="text-sm text-[var(--ds-text-secondary)]">{title}</p>
           </div>
           <div className="flex items-center gap-2">
@@ -201,21 +170,7 @@ function StatCard({
       >
         {/* Icon — smaller on mobile, normal on desktop */}
         <div className="flex items-start justify-between mb-3 lg:mb-6">
-          <div
-            className={cn(
-              "relative p-2 lg:p-3 rounded-lg lg:rounded-xl border border-[var(--ds-border-default)]",
-              styles.iconBg
-            )}
-          >
-            <div
-              className={cn(
-                "absolute -inset-2 rounded-2xl opacity-0 blur-lg transition-opacity duration-300",
-                "group-hover:opacity-60",
-                styles.iconBg
-              )}
-            />
-            <Icon size={16} className={cn(styles.iconColor, "relative lg:!w-5 lg:!h-5")} />
-          </div>
+          {iconTile}
           {trend && <TrendIndicator {...trend} size="sm" />}
         </div>
 
@@ -239,21 +194,7 @@ function StatCard({
     >
       {/* Icon */}
       <div className="flex items-start justify-between mb-6">
-        <div
-          className={cn(
-            "relative p-3 rounded-xl border border-[var(--ds-border-default)]",
-            styles.iconBg
-          )}
-        >
-          <div
-            className={cn(
-              "absolute -inset-2 rounded-2xl opacity-0 blur-lg transition-opacity duration-300",
-              "group-hover:opacity-60",
-              styles.iconBg
-            )}
-          />
-          <Icon size={20} className={cn(styles.iconColor, "relative")} />
-        </div>
+        {iconTile}
         {trend && <TrendIndicator {...trend} />}
       </div>
 
@@ -281,8 +222,8 @@ function TrendIndicator({ value, direction, size = "md" }: TrendIndicatorProps) 
       className={cn(
         "inline-flex items-center gap-0.5 rounded-full font-medium",
         size === "sm" ? "text-xs px-1.5 py-0.5" : "text-xs px-2 py-1",
-        isPositive && "text-red-600 dark:text-red-400 bg-red-500/10",
-        isNegative && "text-red-600 dark:text-red-400 bg-red-500/10",
+        isPositive && "text-[var(--ds-status-success-text)] bg-[var(--ds-status-success-bg)]",
+        isNegative && "text-[var(--ds-status-error-text)] bg-[var(--ds-status-error-bg)]",
         !isPositive && !isNegative && "text-[var(--ds-text-muted)] bg-[var(--ds-bg-surface)]"
       )}
     >

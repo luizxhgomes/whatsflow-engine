@@ -1,7 +1,7 @@
 import React from 'react'
 import Module from 'node:module'
 import { JSDOM } from 'jsdom'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { HealthStatus } from '@/lib/health-check'
@@ -26,7 +26,7 @@ vi.mock('@/components/features/onboarding', async () => ({
   ...(await import('@/components/features/onboarding/OnboardingModal')),
   ...(await import('@/components/features/onboarding/TutorialsSheet')),
   ...(await import('@/components/features/onboarding/hooks/useOnboardingProgress')),
-  OnboardingChecklist: () => null, ChecklistMiniBadge: () => null, OnboardingOverlay: () => null,
+  OnboardingChecklist: () => null, ChecklistMiniBadge: () => null, OnboardingOverlay: () => <div>Configuração da infraestrutura</div>,
 }))
 
 import { DashboardShell } from './DashboardShell'
@@ -41,8 +41,7 @@ const health: HealthStatus = {
   },
 }
 const clients: QueryClient[] = []
-function renderShell() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } })
+function renderShell(client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } })) {
   clients.push(client)
   return render(<QueryClientProvider client={client}>
     <DashboardShell initialAuthStatus={{ isAuthenticated: true }} initialHealthStatus={health}>
@@ -74,6 +73,26 @@ afterEach(() => {
   for (const client of clients.splice(0)) client.clear()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
+})
+
+it('keeps the shell mounted as infrastructure health changes', async () => {
+  localStorage.setItem(storageKey, JSON.stringify({ ...initialProgress, isChecklistDismissed: true }))
+  const client = new QueryClient()
+  renderShell(client)
+  expect(screen.getByRole('button', { name: 'Usar o painel' })).toBeTruthy()
+
+  await act(async () => {
+    client.setQueryData(['healthStatus'], {
+      ...health,
+      services: { ...health.services, database: { status: 'error', provider: 'supabase' } },
+    })
+  })
+  await screen.findByText('Configuração da infraestrutura')
+
+  await act(async () => {
+    client.setQueryData(['healthStatus'], health)
+  })
+  await screen.findByRole('button', { name: 'Usar o painel' })
 })
 
 describe('optional WhatsApp onboarding', () => {

@@ -18,8 +18,8 @@ import { cn } from "@/lib/utils"
  */
 const containerVariants = cva(
   [
-    "rounded-2xl",
-    "transition-all duration-200",
+    "min-w-0 rounded-2xl",
+    "[transition:var(--ds-transition-normal)]",
   ].join(" "),
   {
     variants: {
@@ -31,7 +31,7 @@ const containerVariants = cva(
         elevated: [
           "bg-[var(--ds-bg-surface)]",
           "border border-[var(--ds-border-default)]",
-          "shadow-md",
+          "[box-shadow:var(--ds-shadow-card)]",
         ].join(" "),
         glass: [
           "glass-panel",
@@ -48,13 +48,13 @@ const containerVariants = cva(
       padding: {
         none: "",
         sm: "p-3",
-        md: "p-4",
-        lg: "p-6",
-        xl: "p-8",
+        md: "p-[var(--ds-card-padding)]",
+        lg: "p-[clamp(1rem,2.2vw,1.75rem)]",
+        xl: "p-[clamp(1.25rem,3vw,2rem)]",
       },
       hover: {
         true: [
-          "hover:shadow-md",
+          "hover:[box-shadow:var(--ds-shadow-card-hover)]",
           "hover:border-[var(--ds-border-strong)]",
         ].join(" "),
         false: "",

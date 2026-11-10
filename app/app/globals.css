@@ -30,10 +30,19 @@
   --ds-text-3xl: 1.875rem;
   --ds-text-4xl: 2.25rem;
 
-  /* DS - Brand colors (Red Crimson - WhatsFlow v2) */
-  --ds-brand-primary: #dc2626;
-  --ds-brand-primary-hover: #b91c1c;
-  --ds-brand-primary-muted: rgba(220, 38, 38, 0.1);
+  /* Marca WhatsFlow: verde e petróleo do ícone oficial. */
+  --ds-brand-primary: #156f58;
+  --ds-brand-primary-hover: #105944;
+  --ds-brand-primary-muted: #e2f3e9;
+  --ds-brand-luminous: #8ce4a6;
+  --ds-brand-warm: #d06965;
+  --ds-brand-ink: #101e1a;
+
+  /* Respiros fluidos entre blocos e nas superfícies. */
+  --ds-page-gutter: clamp(1rem, 0.55rem + 1.65vw, 2.5rem);
+  --ds-section-space: clamp(1.25rem, 0.9rem + 1.2vw, 2rem);
+  --ds-card-padding: clamp(0.875rem, 0.65rem + 0.85vw, 1.5rem);
+  --ds-header-height: clamp(3.5rem, 3.05rem + 1.25vw, 4.5rem);
 
   /* ================================
      LIGHT MODE - Geist Inspired
@@ -41,39 +50,39 @@
      ================================ */
 
   /* DS - Backgrounds (LIGHT MODE - Geist style) */
-  --ds-bg-base: #ffffff;
-  --ds-bg-elevated: #fafafa;
-  --ds-bg-surface: #f4f4f5;
-  --ds-bg-overlay: rgba(255, 255, 255, 0.95);
-  --ds-bg-glass: rgba(250, 250, 250, 0.85);
-  --ds-bg-hover: rgba(0, 0, 0, 0.04);
+  --ds-bg-base: #f3f7f4;
+  --ds-bg-elevated: #ffffff;
+  --ds-bg-surface: #e9f1eb;
+  --ds-bg-overlay: rgba(10, 26, 20, 0.48);
+  --ds-bg-glass: #f8fcf9;
+  --ds-bg-hover: rgba(21, 111, 88, 0.075);
 
   /* DS - Text colors (LIGHT MODE - Geist style - high contrast) */
-  --ds-text-primary: #0a0a0a;
-  --ds-text-secondary: #525252;
-  --ds-text-muted: #737373;
-  --ds-text-brand: #dc2626;
-  --ds-text-disabled: #a3a3a3;
+  --ds-text-primary: #14251e;
+  --ds-text-secondary: #385649;
+  --ds-text-muted: #506b5e;
+  --ds-text-brand: #156b53;
+  --ds-text-disabled: #85998f;
 
   /* DS - Border colors (LIGHT MODE - Geist style - visible but elegant) */
-  --ds-border-subtle: rgba(0, 0, 0, 0.06);
-  --ds-border-default: rgba(0, 0, 0, 0.09);
-  --ds-border-strong: rgba(0, 0, 0, 0.14);
-  --ds-border-focus: #dc2626;
+  --ds-border-subtle: #e0e9e2;
+  --ds-border-default: #d6e3da;
+  --ds-border-strong: #aebfb4;
+  --ds-border-focus: #156f58;
 
   /* DS - Status colors (LIGHT MODE - Geist style) */
-  --ds-status-success: #22c55e;
-  --ds-status-success-text: #15803d;
-  --ds-status-success-bg: rgba(34, 197, 94, 0.08);
-  --ds-status-error: #0a0a0a;
-  --ds-status-error-text: #0a0a0a;
-  --ds-status-error-bg: rgba(0, 0, 0, 0.06);
+  --ds-status-success: #1b7c50;
+  --ds-status-success-text: #176541;
+  --ds-status-success-bg: #e2f3e8;
+  --ds-status-error: #b42334;
+  --ds-status-error-text: #a41d30;
+  --ds-status-error-bg: #fcecef;
   --ds-status-warning: #f59e0b;
-  --ds-status-warning-text: #d97706;
+  --ds-status-warning-text: #805417;
   --ds-status-warning-bg: rgba(245, 158, 11, 0.08);
-  --ds-status-info: #f97316;
-  --ds-status-info-text: #c2410c;
-  --ds-status-info-bg: rgba(249, 115, 22, 0.08);
+  --ds-status-info: #2c668e;
+  --ds-status-info-text: #285778;
+  --ds-status-info-bg: #e8f1f7;
 
   /* DS - Campaign status colors (LIGHT MODE - Geist style) */
   --ds-campaign-draft-text: #525252;
@@ -86,8 +95,8 @@
   --ds-campaign-completed-bg: rgba(21, 128, 61, 0.08);
   --ds-campaign-paused-text: #d97706;
   --ds-campaign-paused-bg: rgba(217, 119, 6, 0.08);
-  --ds-campaign-failed-text: #0a0a0a;
-  --ds-campaign-failed-bg: rgba(0, 0, 0, 0.06);
+  --ds-campaign-failed-text: var(--ds-status-error-text);
+  --ds-campaign-failed-bg: var(--ds-status-error-bg);
 
   /* DS - Shadows (LIGHT MODE - Geist style - clean and subtle) */
   --ds-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -97,21 +106,21 @@
   --ds-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
 
   /* DS - Glow effects (LIGHT MODE - Geist: subtle focus rings) */
-  --ds-glow-brand-sm: 0 0 0 2px rgba(220, 38, 38, 0.15);
-  --ds-glow-brand-md: 0 0 0 3px rgba(220, 38, 38, 0.2);
-  --ds-glow-brand-ring: 0 0 0 2px rgba(220, 38, 38, 0.25);
-  --ds-glow-error-ring: 0 0 0 2px rgba(0, 0, 0, 0.15);
+  --ds-glow-brand-sm: 0 0 0 2px rgba(21, 111, 88, 0.16);
+  --ds-glow-brand-md: 0 0 0 3px rgba(21, 111, 88, 0.22);
+  --ds-glow-brand-ring: 0 0 0 3px rgba(21, 111, 88, 0.22);
+  --ds-glow-error-ring: 0 0 0 3px rgba(180, 35, 52, 0.19);
 
   /* DS - Composite shadows (LIGHT MODE - Geist style) */
-  --ds-shadow-card: 0 0 0 1px rgba(0, 0, 0, 0.03), 0 1px 3px 0 rgba(0, 0, 0, 0.06);
-  --ds-shadow-card-hover: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
-  --ds-shadow-button: 0 0 0 1px rgba(0, 0, 0, 0.04);
-  --ds-shadow-button-hover: 0 0 0 1px rgba(0, 0, 0, 0.08);
-  --ds-shadow-button-primary: 0 1px 2px 0 rgba(0, 0, 0, 0.08);
-  --ds-shadow-button-primary-hover: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
-  --ds-shadow-input-focus: 0 0 0 2px rgba(220, 38, 38, 0.25);
-  --ds-shadow-modal: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 16px 32px -8px rgba(0, 0, 0, 0.12);
-  --ds-shadow-dropdown: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+  --ds-shadow-card: 0 3px 12px rgba(20, 43, 32, 0.055);
+  --ds-shadow-card-hover: 0 8px 24px rgba(20, 43, 32, 0.105);
+  --ds-shadow-button: 0 1px 2px rgba(20, 43, 32, 0.08);
+  --ds-shadow-button-hover: 0 3px 8px rgba(20, 43, 32, 0.12);
+  --ds-shadow-button-primary: 0 3px 8px rgba(15, 89, 68, 0.18);
+  --ds-shadow-button-primary-hover: 0 5px 14px rgba(15, 89, 68, 0.26);
+  --ds-shadow-input-focus: var(--ds-glow-brand-ring);
+  --ds-shadow-modal: 0 16px 48px -14px rgba(20, 43, 32, 0.28);
+  --ds-shadow-dropdown: 0 8px 26px -8px rgba(20, 43, 32, 0.19);
 
   /* DS - Motion (não muda com tema) */
   --ds-duration-fastest: 75ms;
@@ -121,8 +130,8 @@
   --ds-ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ds-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --ds-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ds-transition-fast: all 150ms cubic-bezier(0, 0, 0.2, 1);
-  --ds-transition-normal: all 200ms cubic-bezier(0, 0, 0.2, 1);
+  --ds-transition-fast: color 150ms ease-out, background-color 150ms ease-out, border-color 150ms ease-out, box-shadow 150ms ease-out, transform 150ms ease-out;
+  --ds-transition-normal: color 200ms ease-out, background-color 200ms ease-out, border-color 200ms ease-out, box-shadow 200ms ease-out, transform 200ms ease-out;
   --ds-transition-colors: color 200ms cubic-bezier(0, 0, 0.2, 1), background-color 200ms cubic-bezier(0, 0, 0.2, 1), border-color 200ms cubic-bezier(0, 0, 0.2, 1);
 
   /* DS - Border radius (não muda com tema) */
@@ -146,18 +155,18 @@
   --color-gray-900: #18181b;
   --color-gray-950: #09090b;
 
-  /* Crimson Red (WhatsFlow v2 brand) */
-  --color-primary-50: #fef2f2;
-  --color-primary-100: #fee2e2;
-  --color-primary-200: #fecaca;
-  --color-primary-300: #fca5a5;
-  --color-primary-400: #f87171;
-  --color-primary-500: #ef4444;
-  --color-primary-600: #dc2626;
-  --color-primary-700: #b91c1c;
-  --color-primary-800: #991b1b;
-  --color-primary-900: #7f1d1d;
-  --color-primary-950: #450a0a;
+  /* Escala de verdes da marca. */
+  --color-primary-50: #f0faf3;
+  --color-primary-100: #dcf5e5;
+  --color-primary-200: #b8edc9;
+  --color-primary-300: #8ce4a6;
+  --color-primary-400: #57cc87;
+  --color-primary-500: #168462;
+  --color-primary-600: #156f58;
+  --color-primary-700: #105944;
+  --color-primary-800: #104c3c;
+  --color-primary-900: #103a30;
+  --color-primary-950: #082820;
 
   /* ================================
      LANGFLOW COLOR SYSTEM
@@ -205,38 +214,39 @@
   /* ================================
      SHADCN/UI OKLCH VARIABLES (LIGHT MODE)
      ================================ */
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.15 0 0);
-  --card: oklch(0.99 0 0);
-  --card-foreground: oklch(0.15 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0 0);
-  --primary: #128C7E;                    /* WhatsApp teal (AA sobre branco) */
+  --radius: 0.75rem;
+  --background: var(--ds-bg-base);
+  --foreground: var(--ds-text-primary);
+  --card: var(--ds-bg-elevated);
+  --card-foreground: var(--ds-text-primary);
+  --popover: var(--ds-bg-elevated);
+  --popover-foreground: var(--ds-text-primary);
+  --primary: var(--ds-brand-primary);
   --primary-foreground: #ffffff;
-  --secondary: oklch(0.96 0 0);
-  --secondary-foreground: oklch(0.15 0 0);
-  --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.45 0 0);
-  --accent: #D9FDD3;                     /* balão WhatsApp light */
-  --accent-foreground: #075E54;
-  --destructive: oklch(0.55 0.2 27);
-  --border: oklch(0.90 0 0);
-  --input: oklch(0.90 0 0);
-  --ring: #128C7E;
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.98 0 0);
-  --sidebar-foreground: oklch(0.45 0 0);
-  --sidebar-primary: oklch(0.15 0 0);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.96 0 0);
-  --sidebar-accent-foreground: oklch(0.15 0 0);
-  --sidebar-border: oklch(0.90 0 0);
-  --sidebar-ring: oklch(0.15 0 0);
+  --secondary: var(--ds-bg-surface);
+  --secondary-foreground: var(--ds-text-primary);
+  --muted: var(--ds-bg-surface);
+  --muted-foreground: var(--ds-text-muted);
+  --accent: var(--ds-brand-primary-muted);
+  --accent-foreground: var(--ds-text-brand);
+  --destructive: var(--ds-status-error);
+  --destructive-foreground: #ffffff;
+  --border: var(--ds-border-default);
+  --input: #7b9186;
+  --ring: var(--ds-border-focus);
+  --chart-1: var(--ds-text-brand);
+  --chart-2: #316c91;
+  --chart-3: #805417;
+  --chart-4: #6d51a3;
+  --chart-5: var(--ds-status-error-text);
+  --sidebar: var(--ds-bg-elevated);
+  --sidebar-foreground: var(--ds-text-secondary);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--ds-border-default);
+  --sidebar-ring: var(--ring);
 
   /* ================================
      INTERNATIONAL PHONE INPUT THEME (LIGHT MODE)
@@ -320,7 +330,7 @@ body {
 /* Enhanced focus indicators for keyboard navigation */
 /* Excluindo inputs pois cada componente gerencia seu próprio focus */
 :focus-visible:not(input):not(textarea):not(select) {
-  outline: 2px solid var(--color-primary-400);
+  outline: 2px solid var(--ds-border-focus);
   outline-offset: 2px;
 }
 
@@ -328,17 +338,17 @@ body {
 button:focus-visible,
 a:focus-visible,
 [role="button"]:focus-visible {
-  outline: 2px solid var(--color-primary-400);
+  outline: 2px solid var(--ds-border-focus);
   outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.2);
+  box-shadow: var(--ds-glow-brand-sm);
 }
 
 /* Input focus styles removidos - cada componente gerencia seu próprio focus */
 select:focus-visible,
 textarea:focus-visible {
   outline: none;
-  border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  border-color: var(--ds-border-focus);
+  box-shadow: var(--ds-shadow-input-focus);
 }
 
 /* Remove default focus outline when using :focus-visible */
@@ -348,9 +358,110 @@ textarea:focus-visible {
 
 /* Improved placeholder contrast for WCAG AA */
 ::placeholder {
-  color: #71717a;
-  /* gray-500 - 4.7:1 contrast ratio */
+  color: var(--ds-text-muted);
   opacity: 1;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+@media (max-width: 639px), (pointer: coarse) {
+  :where([data-slot="button"], [data-slot="input"], [data-slot="select-trigger"], .ds-header-action) {
+    min-height: 44px;
+  }
+
+  :where([data-slot="button"][data-icon-button], .ds-header-action) {
+    min-width: 44px;
+  }
+}
+
+/* A mesma resposta visual acompanha a marca no login e na navegação. */
+/* Feature icons share the shape and tonal hierarchy of the WhatsFlow mark. */
+.ds-icon-tile {
+  --ds-icon-size: clamp(2.25rem, 2.1rem + 0.45vw, 2.75rem);
+  --ds-icon-ink: var(--ds-text-brand);
+  --ds-icon-surface: var(--ds-brand-primary-muted);
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  inline-size: var(--ds-icon-size);
+  block-size: var(--ds-icon-size);
+  color: var(--ds-icon-ink);
+  background: var(--ds-icon-surface);
+  border: 1px solid color-mix(in srgb, var(--ds-icon-ink) 16%, transparent);
+  border-radius: 28%;
+}
+
+.ds-icon-tile[data-size="sm"],
+.ds-icon-tile[data-size="compact"] { --ds-icon-size: 2rem; }
+@media (width < 64rem) {
+  .ds-icon-tile[data-size="compact-mobile"] { --ds-icon-size: 2rem; }
+}
+.ds-icon-tile[data-size="hero"] {
+  --ds-icon-size: clamp(3.75rem, 2.95rem + 3vw, 5rem);
+  color: white;
+  background:
+    radial-gradient(ellipse at 105% 105%, color-mix(in srgb, var(--ds-brand-warm) 34%, transparent), transparent 68%),
+    linear-gradient(145deg, var(--ds-brand-primary), var(--ds-brand-primary-hover));
+  border-color: rgb(255 255 255 / 16%);
+  box-shadow: var(--ds-shadow-md), inset 0 1px 0 rgb(255 255 255 / 12%);
+}
+
+.ds-icon-tile[data-tone="info"] {
+  --ds-icon-ink: var(--ds-status-info-text);
+  --ds-icon-surface: var(--ds-status-info-bg);
+}
+
+.ds-icon-tile[data-tone="warning"] {
+  --ds-icon-ink: var(--ds-status-warning-text);
+  --ds-icon-surface: var(--ds-status-warning-bg);
+}
+
+.ds-icon-tile[data-tone="error"] {
+  --ds-icon-ink: var(--ds-status-error-text);
+  --ds-icon-surface: var(--ds-status-error-bg);
+}
+
+.ds-icon-tile[data-tone="neutral"] {
+  --ds-icon-ink: var(--ds-text-muted);
+  --ds-icon-surface: var(--ds-bg-surface);
+}
+
+.ds-progress-fill {
+  background: linear-gradient(90deg, var(--ds-brand-primary), var(--ds-text-brand));
+  transform-origin: left;
+  transition: transform 350ms var(--ds-ease-out);
+}
+
+.brand-mark {
+  --brand-mark-halo: 1.15rem;
+  transition: box-shadow 200ms var(--ds-ease-out), filter 200ms var(--ds-ease-out);
+}
+
+.brand-mark--pulse {
+  --brand-mark-halo: 2rem;
+  animation: brand-mark-breathe 4s ease-in-out;
+}
+
+@keyframes brand-mark-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.025); }
+}
+
+@media (hover: hover) {
+  .brand-mark:hover {
+    filter: brightness(1.08);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--ds-brand-luminous) 48%, transparent),
+      0 5px var(--brand-mark-halo) color-mix(in srgb, var(--ds-brand-luminous) 32%, transparent),
+      0 8px var(--brand-mark-halo) color-mix(in srgb, var(--ds-brand-warm) 16%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-mark--pulse { animation: none; }
 }
 
 /* Reduced motion preference */
@@ -405,8 +516,7 @@ textarea:focus-visible {
 
 /* Glass panel effect - theme-aware */
 .glass-panel {
-  background: var(--ds-bg-glass);
-  backdrop-filter: blur(12px);
+  background: var(--ds-bg-elevated);
   border: 1px solid var(--ds-border-subtle);
 }
 
@@ -651,6 +761,7 @@ textarea:focus-visible {
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -674,32 +785,37 @@ textarea:focus-visible {
      DS TOKENS - DARK MODE OVERRIDES
      ================================ */
 
+  --ds-brand-primary-muted: #21392d;
+  --ds-status-success-bg: #1e372b;
+  --ds-status-error-bg: #3a2228;
+  --ds-status-info-bg: #20313d;
+
   /* DS - Backgrounds (DARK MODE) */
-  --ds-bg-base: #09090b;
-  --ds-bg-elevated: #18181b;
-  --ds-bg-surface: #27272a;
-  --ds-bg-overlay: rgba(9, 9, 11, 0.8);
-  --ds-bg-glass: rgba(24, 24, 27, 0.7);
-  --ds-bg-hover: rgba(255, 255, 255, 0.05);
+  --ds-bg-base: #0c1512;
+  --ds-bg-elevated: #141f1b;
+  --ds-bg-surface: #1b2a24;
+  --ds-bg-overlay: rgba(4, 12, 8, 0.64);
+  --ds-bg-glass: #14211b;
+  --ds-bg-hover: rgba(140, 228, 166, 0.08);
 
   /* DS - Text colors (DARK MODE) */
-  --ds-text-primary: #f4f4f5;
-  --ds-text-secondary: #a1a1aa;
-  --ds-text-muted: #71717a;
-  --ds-text-brand: #f87171;
-  --ds-text-disabled: #52525b;
+  --ds-text-primary: #edf5ef;
+  --ds-text-secondary: #bfd1c5;
+  --ds-text-muted: #9fb6a8;
+  --ds-text-brand: var(--ds-brand-luminous);
+  --ds-text-disabled: #74897c;
 
   /* DS - Border colors (DARK MODE) */
-  --ds-border-subtle: rgba(255, 255, 255, 0.05);
-  --ds-border-default: rgba(255, 255, 255, 0.10);
-  --ds-border-strong: rgba(255, 255, 255, 0.15);
-  --ds-border-focus: #f87171;
+  --ds-border-subtle: #24382e;
+  --ds-border-default: #2d4539;
+  --ds-border-strong: #486556;
+  --ds-border-focus: var(--ds-brand-luminous);
 
   /* DS - Status colors (DARK MODE - tons -400 para texto) */
-  --ds-status-success-text: #4ade80;
-  --ds-status-error-text: #f4f4f5;
-  --ds-status-warning-text: #fbbf24;
-  --ds-status-info-text: #fb923c;
+  --ds-status-success-text: #8ce4a6;
+  --ds-status-error-text: #ffb4bc;
+  --ds-status-warning-text: #f6ca76;
+  --ds-status-info-text: #a6d3f0;
 
   /* DS - Campaign status colors (DARK MODE) */
   --ds-campaign-draft-text: #a1a1aa;
@@ -707,7 +823,7 @@ textarea:focus-visible {
   --ds-campaign-sending-text: #fdba74;
   --ds-campaign-completed-text: #4ade80;
   --ds-campaign-paused-text: #fbbf24;
-  --ds-campaign-failed-text: #f4f4f5;
+  --ds-campaign-failed-text: var(--ds-status-error-text);
 
   /* DS - Shadows (DARK MODE - maior opacidade) */
   --ds-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
@@ -717,19 +833,19 @@ textarea:focus-visible {
   --ds-shadow-xl: 0 20px 40px -5px rgba(0, 0, 0, 0.6), 0 8px 16px -6px rgba(0, 0, 0, 0.4);
 
   /* DS - Glow effects (DARK MODE) */
-  --ds-glow-brand-sm: 0 0 10px rgba(220, 38, 38, 0.2);
-  --ds-glow-brand-md: 0 0 20px rgba(220, 38, 38, 0.3);
-  --ds-glow-brand-ring: 0 0 0 3px rgba(220, 38, 38, 0.2);
-  --ds-glow-error-ring: 0 0 0 3px rgba(255, 255, 255, 0.15);
+  --ds-glow-brand-sm: 0 0 0 2px rgba(140, 228, 166, 0.17);
+  --ds-glow-brand-md: 0 0 0 3px rgba(140, 228, 166, 0.25);
+  --ds-glow-brand-ring: 0 0 0 3px rgba(140, 228, 166, 0.25);
+  --ds-glow-error-ring: 0 0 0 3px rgba(255, 180, 188, 0.24);
 
   /* DS - Composite shadows (DARK MODE) */
-  --ds-shadow-card: 0 2px 4px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.03);
-  --ds-shadow-card-hover: 0 4px 8px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  --ds-shadow-card: 0 4px 16px rgba(0, 0, 0, 0.17);
+  --ds-shadow-card-hover: 0 8px 26px rgba(0, 0, 0, 0.30);
   --ds-shadow-button: 0 1px 2px 0 rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
   --ds-shadow-button-hover: 0 2px 4px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
-  --ds-shadow-button-primary: 0 2px 4px 0 rgba(0, 0, 0, 0.4), 0 0 10px rgba(220, 38, 38, 0.2);
-  --ds-shadow-button-primary-hover: 0 4px 8px -1px rgba(0, 0, 0, 0.4), 0 0 20px rgba(220, 38, 38, 0.3);
-  --ds-shadow-input-focus: 0 0 0 3px rgba(220, 38, 38, 0.2);
+  --ds-shadow-button-primary: 0 3px 10px rgba(0, 0, 0, 0.25);
+  --ds-shadow-button-primary-hover: 0 5px 16px rgba(0, 0, 0, 0.34);
+  --ds-shadow-input-focus: var(--ds-glow-brand-ring);
   --ds-shadow-modal: 0 20px 40px -5px rgba(0, 0, 0, 0.6), 0 8px 16px -6px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
   --ds-shadow-dropdown: 0 10px 25px -3px rgba(0, 0, 0, 0.5), 0 4px 10px -4px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
 
@@ -775,37 +891,37 @@ textarea:focus-visible {
   /* ================================
      SHADCN/UI OKLCH VARIABLES
      ================================ */
-  --background: oklch(0 0 0);
-  --foreground: oklch(0.98 0 0);
-  --card: oklch(0.04 0 0);
-  --card-foreground: oklch(0.98 0 0);
-  --popover: oklch(0.04 0 0);
-  --popover-foreground: oklch(0.98 0 0);
-  --primary: #25D366;                    /* WhatsApp green (brand) */
-  --primary-foreground: #0B141A;
-  --secondary: oklch(0.1 0 0);
-  --secondary-foreground: oklch(0.98 0 0);
-  --muted: oklch(0.15 0 0);
-  --muted-foreground: oklch(0.65 0 0);
-  --accent: #005C4B;                     /* balão WhatsApp dark */
-  --accent-foreground: #D9FDD3;
-  --destructive: oklch(0.65 0.25 29);
-  --border: oklch(0.27 0 0);
-  --input: oklch(0.27 0 0);
-  --ring: #25D366;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0 0 0);
-  --sidebar-foreground: oklch(0.65 0 0);
-  --sidebar-primary: oklch(0.98 0 0);
-  --sidebar-primary-foreground: oklch(0 0 0);
-  --sidebar-accent: oklch(0.1 0 0);
-  --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(0.18 0 0);
-  --sidebar-ring: oklch(0.8 0 0);
+  --background: var(--ds-bg-base);
+  --foreground: var(--ds-text-primary);
+  --card: var(--ds-bg-elevated);
+  --card-foreground: var(--ds-text-primary);
+  --popover: var(--ds-bg-elevated);
+  --popover-foreground: var(--ds-text-primary);
+  --primary: var(--ds-brand-luminous);
+  --primary-foreground: var(--ds-brand-ink);
+  --secondary: var(--ds-bg-surface);
+  --secondary-foreground: var(--ds-text-primary);
+  --muted: var(--ds-bg-surface);
+  --muted-foreground: var(--ds-text-muted);
+  --accent: var(--ds-brand-primary-muted);
+  --accent-foreground: var(--ds-text-brand);
+  --destructive: var(--ds-status-error);
+  --border: var(--ds-border-default);
+  --input: #647e70;
+  --ring: var(--ds-border-focus);
+  --chart-1: var(--ds-text-brand);
+  --chart-2: #94c6e6;
+  --chart-3: #f6ca76;
+  --chart-4: #c7b3f1;
+  --chart-5: var(--ds-status-error-text);
+  --sidebar: var(--ds-bg-elevated);
+  --sidebar-foreground: var(--ds-text-secondary);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--ds-border-default);
+  --sidebar-ring: var(--ring);
 }
 
 @layer base {
@@ -816,12 +932,7 @@ textarea:focus-visible {
   body {
     @apply bg-background text-foreground;
     font-family: var(--ds-font-body);
-    background-image: radial-gradient(
-      rgba(255, 255, 255, 0.08) 1px,
-      transparent 1px
-    );
-    background-size: 24px 24px;
-    background-position: 0 0;
+    caret-color: var(--ds-text-brand);
   }
 }
 
@@ -832,9 +943,10 @@ textarea:focus-visible {
 /* Headings - usando fonte display (Satoshi) */
 .text-heading-1 {
   font-family: var(--ds-font-display);
-  font-size: var(--ds-text-4xl);
+  font-size: clamp(1.75rem, 1.45rem + 1.2vw, 2.5rem);
   font-weight: 700;
-  line-height: 1.25;
+  line-height: 1.15;
+  text-wrap: balance;
   letter-spacing: -0.025em;
   color: var(--ds-text-primary);
 }
@@ -911,9 +1023,10 @@ textarea:focus-visible {
 /* Stats (dashboard numbers) */
 .text-stat {
   font-family: var(--ds-font-mono);
-  font-size: var(--ds-text-4xl);
+  font-size: clamp(1.5rem, 1.05rem + 1.25vw, 2.25rem);
   font-weight: 700;
-  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
   letter-spacing: -0.025em;
   color: var(--ds-text-primary);
 }

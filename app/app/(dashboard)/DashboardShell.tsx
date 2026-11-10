@@ -375,17 +375,6 @@ export function DashboardShell({
         return 'App'
     }
 
-    // Show onboarding overlay if setup is needed
-    if (needsSetup) {
-        return (
-            <OnboardingOverlay
-                health={healthStatus || null}
-                isLoading={isHealthFetching}
-                onRefresh={() => refetchHealth()}
-            />
-        )
-    }
-
     // Determina se deve mostrar o modal de onboarding do WhatsApp
     // Aguarda o banco e a preferência local para não reabrir o guia que foi adiado.
     const showWhatsAppOnboarding = !needsSetup && !isOnboardingStatusLoading && !isOnboardingCompletedInDb
@@ -423,6 +412,17 @@ export function DashboardShell({
         handleLogout,
         prefetchRoute,
     ])
+
+    // Show onboarding overlay if setup is needed
+    if (needsSetup) {
+        return (
+            <OnboardingOverlay
+                health={healthStatus || null}
+                isLoading={isHealthFetching}
+                onRefresh={() => refetchHealth()}
+            />
+        )
+    }
 
     if (isBuilderRoute) {
         return (
@@ -471,14 +471,14 @@ export function DashboardShell({
                     {/* Main Content - no header on desktop, compact mobile header */}
                     {/* CompactSidebar is lg:static (in flow), ExpandedSidebar is fixed (needs padding) */}
                     <div className={cn(
-                        "flex-1 flex flex-col min-w-0 h-screen overflow-hidden transition-[padding] duration-200",
+                        "flex-1 flex flex-col min-w-0 h-dvh overflow-hidden transition-[padding] duration-200",
                         isSidebarExpanded && "lg:pl-56"
                     )}>
                         {/* Compact mobile header - only menu button */}
-                        <header className="lg:hidden h-12 flex items-center justify-between px-4 border-b border-[var(--ds-border-subtle)] bg-[var(--ds-bg-elevated)] shrink-0">
+                        <header className="lg:hidden min-h-14 flex items-center justify-between px-[var(--ds-page-gutter)] border-b border-[var(--ds-border-subtle)] bg-[var(--ds-bg-elevated)] shrink-0">
                             <div className="flex items-center">
                                 <button
-                                    className="p-2 text-[var(--ds-text-secondary)] -ml-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-500 focus-visible:outline-offset-2 rounded-md"
+                                    className="ds-header-action grid place-items-center p-2 text-[var(--ds-text-secondary)] -ml-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-500 focus-visible:outline-offset-2 rounded-md"
                                     onClick={() => {
                                         updateSidebarExpanded(true)
                                         setIsMobileMenuOpen(true)
@@ -527,14 +527,14 @@ export function DashboardShell({
 
             {/* Main Content - padding only when expanded (ExpandedSidebar is fixed) */}
             <div className={cn(
-                "flex-1 flex flex-col min-w-0 h-screen overflow-hidden transition-[padding] duration-200",
+                "flex-1 flex flex-col min-w-0 h-dvh overflow-hidden transition-[padding] duration-200",
                 isSidebarExpanded && "lg:pl-56"
             )}>
                 {/* Header */}
-                <header className="h-20 flex items-center justify-between px-6 lg:px-10 shrink-0">
+                <header className="flex min-h-[var(--ds-header-height)] shrink-0 items-center justify-between gap-2 border-b border-[var(--ds-border-subtle)] bg-[var(--ds-bg-elevated)] px-[var(--ds-page-gutter)]">
                     <div className="flex items-center">
                         <button
-                            className="lg:hidden p-2 text-[var(--ds-text-secondary)] mr-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-500 focus-visible:outline-offset-2 rounded-md"
+                            className="ds-header-action grid place-items-center lg:hidden p-2 text-[var(--ds-text-secondary)] mr-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-500 focus-visible:outline-offset-2 rounded-md"
                             onClick={() => {
                                 updateSidebarExpanded(true)
                                 setIsMobileMenuOpen(true)
@@ -551,7 +551,7 @@ export function DashboardShell({
                         </nav>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 items-center gap-0.5 sm:gap-2.5">
                         <ChecklistMiniBadge isOnboardingCompletedInDb={isOnboardingCompletedInDb} />
 
                         {/* Tutoriais de Configuração */}
@@ -561,7 +561,7 @@ export function DashboardShell({
 
                         <ThemeToggle compact />
                         <DevModeToggle />
-                        <button className="relative group focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-500 focus-visible:outline-offset-2 rounded-md p-1" aria-label={alertCount > 0 ? `Notificações (${alertCount} nova${alertCount > 1 ? 's' : ''})` : 'Notificações'}>
+                        <button className="ds-header-action relative group grid place-items-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-500 focus-visible:outline-offset-2 rounded-md p-1" aria-label={alertCount > 0 ? `Notificações (${alertCount} nova${alertCount > 1 ? 's' : ''})` : 'Notificações'}>
                             <Bell size={20} className="text-[var(--ds-text-muted)] group-hover:text-[var(--ds-text-primary)] transition-colors cursor-pointer" aria-hidden="true" />
                             {alertCount > 0 && (
                                 <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-primary-500 rounded-full border-2 border-[var(--ds-bg-base)] flex items-center justify-center" aria-label={`${alertCount} notificação${alertCount > 1 ? 'ões' : ''} não lida${alertCount > 1 ? 's' : ''}`}>
@@ -656,12 +656,12 @@ function PageContentShell({ children }: { children: React.ReactNode }) {
     const layout = usePageLayout()
 
     const mainOverflowClass = layout.overflow === 'hidden' ? 'overflow-hidden' : 'overflow-auto'
-    const mainPaddingClass = layout.padded ? 'p-6 lg:p-10' : ''
+    const mainPaddingClass = layout.padded ? 'px-[var(--ds-page-gutter)] py-[var(--ds-section-space)]' : ''
     const wrapperWidthClass = getPageWidthClass(layout.width)
     const wrapperHeightClass = layout.height === 'full' ? 'h-full' : ''
 
     return (
-        <main className={`flex-1 ${mainOverflowClass} ${mainPaddingClass}`.trim()}>
+        <main className={`min-h-0 min-w-0 flex-1 ${mainOverflowClass} ${mainPaddingClass}`.trim()}>
             <div className={`${wrapperWidthClass} ${wrapperHeightClass}`.trim()}>
                 {layout.showAccountAlerts && <AccountAlertBanner />}
                 {children}

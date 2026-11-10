@@ -73,7 +73,7 @@ const InboxUnreadBadge = memo(function InboxUnreadBadge({
 
   return (
     <span
-      className="rounded-full bg-red-500/20 px-1.5 py-[1px] text-[8px] font-semibold uppercase tracking-wider text-red-700 dark:text-red-200 border border-red-500/30"
+      className="rounded-full bg-accent px-1.5 py-[1px] text-[10px] font-semibold text-accent-foreground"
       aria-label={`${count} mensagens não lidas`}
     >
       {displayCount}
@@ -119,7 +119,7 @@ const CompactSidebar = memo(function CompactSidebar({
           <ChevronRight size={14} aria-hidden="true" />
         </button>
         <div
-          className="flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden border border-[var(--ds-border-default)] shadow-lg shadow-primary-900/20"
+          className="brand-mark flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden border border-[var(--ds-border-default)] [box-shadow:var(--ds-shadow-card)]"
           role="img"
           aria-label="Logo WhatsFlow"
         >
@@ -186,7 +186,7 @@ const CompactSidebar = memo(function CompactSidebar({
         <button
           onClick={onLogout}
           disabled={isLoggingOut}
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--ds-border-default)] text-[var(--ds-text-secondary)] transition-colors hover:bg-[var(--ds-bg-hover)] hover:text-[var(--ds-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-500 focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--ds-border-default)] text-[var(--ds-text-secondary)] transition-colors hover:bg-[var(--ds-bg-hover)] hover:text-[var(--ds-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           title="Sair"
           aria-label="Sair da conta"
         >
@@ -236,9 +236,9 @@ const ExpandedSidebar = memo(function ExpandedSidebar({
       aria-label="Menu de navegação expandido"
     >
       <div className="flex h-full flex-col p-4">
-        <div className="h-20 flex items-center px-2 mb-6 gap-2">
+        <div className="min-h-14 flex items-center px-2 mb-5 gap-2">
           <div
-            className="w-9 h-9 min-w-[2.25rem] rounded-xl flex items-center justify-center shadow-lg shadow-primary-900/20 border border-[var(--ds-border-default)] overflow-hidden"
+            className="brand-mark w-9 h-9 min-w-[2.25rem] rounded-xl flex items-center justify-center [box-shadow:var(--ds-shadow-card)] border border-[var(--ds-border-default)] overflow-hidden"
             role="img"
             aria-label="Logo WhatsFlow"
           >
@@ -255,7 +255,7 @@ const ExpandedSidebar = memo(function ExpandedSidebar({
             <ChevronLeft size={14} aria-hidden="true" />
           </button>
           <button
-            className="ml-auto lg:hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-500 focus-visible:outline-offset-2 rounded-md p-1"
+            className="ds-header-action ml-auto grid place-items-center lg:hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-500 focus-visible:outline-offset-2 rounded-md p-1"
             onClick={onCloseMobileMenu}
             aria-label="Fechar menu"
           >
@@ -267,13 +267,12 @@ const ExpandedSidebar = memo(function ExpandedSidebar({
           <div>
             <PrefetchLink
               href="/campaigns/new"
-              className="group relative inline-flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl font-medium transition-all shadow-[0_0_20px_rgba(220,38,38,0.3),0_4px_12px_rgba(220,38,38,0.2)] hover:shadow-[0_0_28px_rgba(220,38,38,0.45),0_6px_16px_rgba(220,38,38,0.3)] overflow-hidden focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ds-bg-base)]"
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground [box-shadow:var(--ds-shadow-button-primary)] [transition:var(--ds-transition-fast)] hover:bg-primary/90 hover:[box-shadow:var(--ds-shadow-button-primary-hover)] active:translate-y-px"
               aria-label="Criar nova campanha"
+              onClick={onCloseMobileMenu}
             >
-              <div className="absolute inset-0 bg-primary-600 group-hover:bg-primary-500 transition-colors"></div>
-              <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-              <Plus size={16} className="relative z-10 text-white" aria-hidden="true" />
-              <span className="relative z-10 text-white">Nova Campanha</span>
+              <Plus size={16} aria-hidden="true" />
+              <span>Nova Campanha</span>
             </PrefetchLink>
           </div>
 
@@ -282,11 +281,11 @@ const ExpandedSidebar = memo(function ExpandedSidebar({
             {navItems.map((item) => {
               const isDisabled = item.disabled
               const isActive = pathname === item.path
-              const baseClassName = `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mb-1 ${
+              const baseClassName = `flex min-h-11 items-center gap-3 px-3 py-2 rounded-xl border border-transparent transition-colors duration-150 mb-1 ${
                 isDisabled
                   ? 'opacity-50 cursor-not-allowed text-[var(--ds-text-muted)]'
                   : isActive
-                    ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400 font-medium border border-primary-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
+                    ? 'bg-accent text-accent-foreground font-semibold'
                     : 'text-[var(--ds-text-secondary)] hover:bg-[var(--ds-bg-hover)] hover:text-[var(--ds-text-primary)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500'
               }`
 
@@ -295,7 +294,7 @@ const ExpandedSidebar = memo(function ExpandedSidebar({
                 <InboxUnreadBadge variant="expanded" />
               ) : item.badge ? (
                 <span
-                  className="rounded-full bg-red-500/20 px-1.5 py-[1px] text-[8px] font-semibold uppercase tracking-wider text-red-700 dark:text-red-200 border border-red-500/30"
+                  className="rounded-full bg-accent px-1.5 py-[1px] text-[10px] font-semibold text-accent-foreground"
                   aria-label={item.badge}
                 >
                   {item.badge}
@@ -340,7 +339,7 @@ const ExpandedSidebar = memo(function ExpandedSidebar({
           <button
             onClick={onLogout}
             disabled={isLoggingOut}
-            className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--ds-bg-hover)] cursor-pointer transition-colors border border-transparent hover:border-[var(--ds-border-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-500 focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--ds-bg-hover)] cursor-pointer transition-colors border border-transparent hover:border-[var(--ds-border-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             title="Sair da conta"
             aria-label="Sair da conta"
           >
@@ -348,7 +347,7 @@ const ExpandedSidebar = memo(function ExpandedSidebar({
               className="w-9 h-9 rounded-full bg-[var(--ds-bg-surface)] border border-[var(--ds-border-default)] flex items-center justify-center overflow-hidden"
               aria-hidden="true"
             >
-              <span className="text-lg font-bold text-primary-600 dark:text-primary-400">
+              <span className="text-lg font-bold text-[var(--ds-text-brand)]">
                 {(companyName || 'WhatsFlow').charAt(0).toUpperCase()}
               </span>
             </div>

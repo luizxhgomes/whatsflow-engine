@@ -18,7 +18,7 @@ export function DevModeToggle({ className = '' }: DevModeToggleProps) {
   return (
     <button
       onClick={toggleDevMode}
-      className={`flex h-9 w-9 items-center justify-center rounded-lg border transition-colors
+      className={`ds-header-action flex h-9 w-9 items-center justify-center rounded-lg border transition-colors
         ${isDevMode
           ? 'border-primary-500/50 bg-primary-500/10 text-primary-500'
           : 'border-transparent text-[var(--ds-text-secondary)] hover:border-[var(--ds-border-default)] hover:bg-[var(--ds-bg-hover)] hover:text-[var(--ds-text-primary)]'

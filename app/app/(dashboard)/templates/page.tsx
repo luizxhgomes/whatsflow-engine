@@ -42,7 +42,7 @@ const StrategyBadge = ({ strategy }: { strategy?: AIStrategy }) => {
     utility: {
       icon: Wrench,
       label: 'Utilidade',
-      style: 'bg-red-500/10 text-red-400 border-red-500/30',
+      style: 'bg-primary/10 text-primary border-ring/30',
     },
     bypass: {
       icon: VenetianMask,
@@ -71,7 +71,7 @@ const StatusBadge = ({ status, approvedCount, totalCount }: { status: string; ap
 
   if (isComplete) {
     return (
-      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border bg-red-500/10 text-red-300 border-red-500/20">
+      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border bg-primary/10 text-primary border-ring/20">
         Concluído
       </span>
     );
@@ -246,17 +246,17 @@ export default function TemplatesPage() {
               : 'Gerencie templates e rascunhos.'}
           </PageDescription>
         </div>
-        <PageActions>
+        <PageActions className="w-full flex-wrap sm:w-auto">
           {activeTab === 'meta' && (
-            <div className="flex items-center gap-2">
-              <Button variant="brand" className="min-w-[160px]" onClick={handleCreateManualTemplate}>
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+              <Button variant="brand" className="min-h-11 w-full sm:w-auto sm:min-w-[160px]" onClick={handleCreateManualTemplate}>
                 <Plus className="w-4 h-4" />
                 Criar template
               </Button>
 
               <Button
                 variant="outline"
-                className="min-w-[160px]"
+                className="min-h-11 w-full sm:w-auto sm:min-w-[160px]"
                 onClick={controller.onSync}
                 disabled={controller.isSyncing}
               >
@@ -267,7 +267,7 @@ export default function TemplatesPage() {
           )}
 
           {activeTab === 'projects' && (
-            <div className="flex items-center gap-2">
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
               <Button variant="brand" onClick={() => router.push('/templates/new')}>
                 <Plus className="w-4 h-4" />
                 Novo Projeto
@@ -285,7 +285,7 @@ export default function TemplatesPage() {
           )}
 
           {activeTab === 'flows' && (
-            <div className="flex items-center gap-2">
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
               <Button variant="brand" onClick={handleQuickCreateFlow} disabled={isCreatingFlow}>
                 <Plus className="w-4 h-4" />
                 {isCreatingFlow ? 'Criando...' : 'Criar MiniApp'}
@@ -310,8 +310,8 @@ export default function TemplatesPage() {
       <div className="flex flex-wrap gap-2">
         <button
           onClick={() => setTab('meta')}
-          className={`rounded-full border px-4 py-2 text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'meta'
-            ? 'border-red-400/40 bg-red-500/10 text-[var(--ds-status-success-text)]'
+          className={`min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'meta'
+            ? 'border-ring/40 bg-primary/10 text-primary'
             : 'border-[var(--ds-border-default)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-secondary)] hover:text-[var(--ds-text-primary)]'
             }`}
         >
@@ -321,42 +321,42 @@ export default function TemplatesPage() {
 
         <button
           onClick={() => setTab('flows')}
-          className={`rounded-full border px-4 py-2 text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'flows'
-            ? 'border-red-400/40 bg-red-500/10 text-[var(--ds-status-success-text)]'
+          className={`min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'flows'
+            ? 'border-ring/40 bg-primary/10 text-primary'
             : 'border-[var(--ds-border-default)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-secondary)] hover:text-[var(--ds-text-primary)]'
             }`}
         >
           <Workflow className="w-4 h-4" />
           MiniApps
-          <span className="rounded-full bg-red-500/20 px-1 py-px text-[8px] font-semibold uppercase tracking-wider text-[var(--ds-status-success-text)] border border-red-500/30">
+          <span className="rounded-full bg-primary/20 px-1 py-px text-[8px] font-semibold uppercase tracking-wider text-[var(--ds-status-success-text)] border border-ring/30">
             beta
           </span>
         </button>
 
         <button
           onClick={() => setTab('forms')}
-          className={`rounded-full border px-4 py-2 text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'forms'
-            ? 'border-red-400/40 bg-red-500/10 text-[var(--ds-status-success-text)]'
+          className={`min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'forms'
+            ? 'border-ring/40 bg-primary/10 text-primary'
             : 'border-[var(--ds-border-default)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-secondary)] hover:text-[var(--ds-text-primary)]'
             }`}
         >
           <FileText className="w-4 h-4" />
           Forms
-          <span className="rounded-full bg-red-500/20 px-1 py-px text-[8px] font-semibold uppercase tracking-wider text-[var(--ds-status-success-text)] border border-red-500/30">
+          <span className="rounded-full bg-primary/20 px-1 py-px text-[8px] font-semibold uppercase tracking-wider text-[var(--ds-status-success-text)] border border-ring/30">
             beta
           </span>
         </button>
 
         <button
           onClick={() => setTab('projects')}
-          className={`rounded-full border px-4 py-2 text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'projects'
-            ? 'border-red-400/40 bg-red-500/10 text-[var(--ds-status-success-text)]'
+          className={`min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'projects'
+            ? 'border-ring/40 bg-primary/10 text-primary'
             : 'border-[var(--ds-border-default)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-secondary)] hover:text-[var(--ds-text-primary)]'
             }`}
         >
           <LayoutGrid className="w-4 h-4" />
           Projetos (Fábrica)
-          <span className="rounded-full bg-red-500/20 px-1 py-px text-[8px] font-semibold uppercase tracking-wider text-[var(--ds-status-success-text)] border border-red-500/30">
+          <span className="rounded-full bg-primary/20 px-1 py-px text-[8px] font-semibold uppercase tracking-wider text-[var(--ds-status-success-text)] border border-ring/30">
             beta
           </span>
         </button>
@@ -424,7 +424,7 @@ export default function TemplatesPage() {
       {activeTab === 'projects' && (
         <>
           {/* Filters Bar */}
-          <div className="rounded-2xl border border-[var(--ds-border-default)] bg-[var(--ds-bg-elevated)] p-6 shadow-[0_12px_30px_rgba(0,0,0,0.35)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="rounded-2xl border border-[var(--ds-border-default)] bg-[var(--ds-bg-elevated)] p-6 shadow-[var(--ds-shadow-card)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3 w-full sm:w-96 bg-[var(--ds-bg-elevated)] border border-[var(--ds-border-default)] rounded-xl px-4 py-3 transition-all">
               <Search size={18} className="text-[var(--ds-text-muted)]" />
               <input
@@ -435,7 +435,7 @@ export default function TemplatesPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
               <button
                 onClick={() => refetch()}
                 className="p-2.5 text-[var(--ds-text-secondary)] hover:text-[var(--ds-text-primary)] hover:bg-[var(--ds-bg-hover)] rounded-lg border border-[var(--ds-border-default)] transition-colors"
@@ -447,7 +447,7 @@ export default function TemplatesPage() {
           </div>
 
           {/* Table */}
-          <div className="rounded-2xl border border-[var(--ds-border-default)] bg-[var(--ds-bg-elevated)] shadow-[0_12px_30px_rgba(0,0,0,0.35)] overflow-hidden">
+          <div className="rounded-2xl border border-[var(--ds-border-default)] bg-[var(--ds-bg-elevated)] shadow-[var(--ds-shadow-card)] overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="bg-[var(--ds-bg-elevated)] border-b border-[var(--ds-border-default)] text-[var(--ds-text-muted)] uppercase tracking-widest text-xs">
@@ -465,7 +465,7 @@ export default function TemplatesPage() {
                   {isLoadingProjects ? (
                     <tr>
                       <td colSpan={7} className="px-6 py-12 text-center">
-                        <Loader2 className="w-6 h-6 animate-spin text-red-500 mx-auto" />
+                        <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
                       </td>
                     </tr>
                   ) : filteredProjects.length === 0 ? (
@@ -488,11 +488,11 @@ export default function TemplatesPage() {
                         >
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="p-2 bg-red-500/10 rounded-lg text-red-400">
-                                <Folder size={16} />
+                              <div className="ds-icon-tile" data-size="sm" aria-hidden="true">
+                                <Folder className="size-1/2" />
                               </div>
                               {editingProjectId === project.id ? (
-                                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto" onClick={(e) => e.stopPropagation()}>
                                   <input
                                     type="text"
                                     value={editingTitle}
@@ -502,12 +502,12 @@ export default function TemplatesPage() {
                                       if (e.key === 'Escape') handleCancelEdit(e as unknown as React.MouseEvent);
                                     }}
                                     autoFocus
-                                    className="px-2 py-1 rounded-lg border border-red-500 bg-[var(--ds-bg-elevated)] text-[var(--ds-text-primary)] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-500/30"
+                                    className="px-2 py-1 rounded-lg border border-ring bg-[var(--ds-bg-elevated)] text-[var(--ds-text-primary)] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring/30"
                                   />
                                   <button
                                     onClick={handleSaveEdit}
                                     disabled={isUpdating}
-                                    className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/10 disabled:opacity-50"
+                                    className="p-1.5 rounded-lg text-primary hover:bg-primary/10 disabled:opacity-50"
                                     title="Salvar"
                                   >
                                     {isUpdating ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
@@ -546,7 +546,7 @@ export default function TemplatesPage() {
                             <div className="flex items-center gap-3">
                               <div className="flex-1 w-24 bg-[var(--ds-bg-surface)] rounded-full h-1">
                                 <div
-                                  className="bg-red-500 h-1 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                                  className="bg-primary h-1 rounded-full"
                                   style={{ width: `${approvedPercent}%` }}
                                 />
                               </div>
@@ -563,7 +563,7 @@ export default function TemplatesPage() {
                               <button
                                 onClick={(e) => handleStartEdit(e, project)}
                                 title="Renomear"
-                                className="p-2 rounded-lg text-[var(--ds-text-secondary)] hover:text-red-400 hover:bg-red-500/10"
+                                className="p-2 rounded-lg text-[var(--ds-text-secondary)] hover:text-primary hover:bg-primary/10"
                               >
                                 <Pencil size={16} />
                               </button>

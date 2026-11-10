@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import { Rocket } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -398,8 +399,8 @@ export function OnboardingModal({ isConnected, onSaveCredentials, onMarkComplete
           <>
             <DialogHeader className="text-center pb-2">
               <div className="flex justify-center mb-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg">
-                  <span className="text-3xl">🚀</span>
+                <div className="ds-icon-tile" data-size="hero" aria-hidden="true">
+                  <Rocket className="size-1/2" />
                 </div>
               </div>
               <DialogTitle className="text-2xl">Bem-vindo ao WhatsFlow!</DialogTitle>
@@ -417,11 +418,11 @@ export function OnboardingModal({ isConnected, onSaveCredentials, onMarkComplete
 
         {renderStep()}
 
-        <div className="space-y-2 border-t border-zinc-800 pt-4">
+        <div className="space-y-2 border-t border-[var(--ds-border-subtle)] pt-4">
           <Button type="button" variant="outline" className="w-full" onClick={onClose}>
             Explorar o painel
           </Button>
-          <p className="text-center text-sm text-zinc-400">
+          <p className="text-center text-sm text-[var(--ds-text-secondary)]">
             Para enviar e receber mensagens, conclua a conexão do WhatsApp em Configurações.
           </p>
         </div>

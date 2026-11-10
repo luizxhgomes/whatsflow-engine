@@ -86,7 +86,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ stats, recentCampa
         <h2 id="operational-title" className="text-lg font-semibold">Visão operacional</h2>
         {overview ? (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <StatCard title="Contatos" value={number(overview.contacts)} icon={Users} layout="compact" />
               <div className="space-y-2">
                 <StatCard title="Templates" value={number(overview.templates.total)} icon={FileText} layout="compact" />
@@ -136,7 +136,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ stats, recentCampa
 
       <h2 className="text-lg font-semibold">Indicadores de campanhas</h2>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
+      <div className="grid grid-cols-1 min-[360px]:grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-4">
         <StatCard
           title="Enviadas por campanhas"
           value={stats.sent24h}
@@ -173,10 +173,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ stats, recentCampa
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
         {/* Chart Section */}
-        <Container variant="glass" padding="md" className="lg:col-span-2 lg:!p-6">
-          <div className="flex items-center justify-between mb-4 lg:mb-8">
+        <Container variant="glass" padding="md" className="min-w-0 lg:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4 lg:mb-6">
             <h3 className="text-sm lg:text-heading-4 font-semibold text-[var(--ds-text-primary)]" id="chart-title">Volume de campanhas</h3>
-            <div className="flex gap-2" role="group" aria-label="Período do gráfico">
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Período do gráfico">
               {[
                 { key: '7D', label: 'Últimos 7 dias' },
                 { key: '15D', label: 'Últimos 15 dias' },
@@ -187,7 +187,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ stats, recentCampa
                   aria-label={t.label}
                   aria-pressed={t.key === range}
                   onClick={() => setRange(t.key as '7D' | '15D' | '30D')}
-                  className={`text-xs px-3 py-1 rounded-lg transition-colors ${t.key === range ? 'bg-[var(--ds-bg-hover)] text-[var(--ds-text-primary)]' : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text-secondary)]'}`}
+                  className={`min-h-11 sm:min-h-8 cursor-pointer text-xs font-semibold px-3 py-1 rounded-lg transition-colors ${t.key === range ? 'bg-accent text-accent-foreground' : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text-secondary)]'}`}
                 >
                   {t.key}
                 </button>
@@ -199,14 +199,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ stats, recentCampa
             aria-labelledby="chart-title"
             aria-describedby="chart-description"
           >
-            <div ref={containerRef} className="h-48 lg:h-72 w-full">
+            <div ref={containerRef} className="h-48 w-full min-w-0 lg:h-64">
               {isMounted && chartData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <AreaChart data={chartData.slice(-rangeSize)} aria-hidden="true">
                   <defs>
                     <linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#dc2626" stopOpacity={0.22}/>
-                      <stop offset="95%" stopColor="#dc2626" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.22}/>
+                      <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0}/>
                     </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
@@ -224,14 +224,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ stats, recentCampa
                 />
                 <Tooltip
                   contentStyle={{backgroundColor: '#101113', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', color: '#fff'}}
-                  itemStyle={{color: '#dc2626'}}
+                  itemStyle={{color: 'var(--chart-1)'}}
                   labelStyle={{color: '#a1a1aa'}}
                   formatter={(value) => [value, 'Enviadas']}
                 />
                 <Area 
                   type="monotone" 
                   dataKey="sent" 
-                  stroke="#dc2626" 
+                  stroke="var(--chart-1)"
                   strokeWidth={2}
                   fillOpacity={1} 
                   fill="url(#colorSent)" 

@@ -53,7 +53,7 @@ export const OnboardingOverlay = ({
                 : health?.services.database?.status === 'error'
                     ? 'error'
                     : 'pending',
-            icon: React.createElement(Database, { size: 20, className: 'text-red-600 dark:text-red-400' }),
+            icon: React.createElement(Database, { size: 20, className: 'text-primary' }),
             actionLabel: 'Abrir Assistente de Configuração',
             actionUrl: '/install',
             errorMessage: health?.services.database?.message,
@@ -118,10 +118,10 @@ export const OnboardingOverlay = ({
             <div className="max-w-2xl w-full">
                 {/* Header */}
                 <div className="text-center mb-10">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-linear-to-br from-primary-500 to-red-600 mb-6 shadow-lg shadow-primary-500/20">
-                        <Sparkles size={40} className="text-white" />
+                    <div className="ds-icon-tile mb-6" data-size="hero" aria-hidden="true">
+                        <Sparkles className="size-1/2" />
                     </div>
-                    <h1 className="text-4xl font-bold text-[var(--ds-text-primary)] tracking-tight mb-3">
+                    <h1 className="text-3xl sm:text-4xl font-bold text-[var(--ds-text-primary)] tracking-tight mb-3">
                         Configuração Necessária
                     </h1>
                     <p className="text-[var(--ds-text-secondary)] text-lg max-w-md mx-auto mb-6">
@@ -129,7 +129,7 @@ export const OnboardingOverlay = ({
                     </p>
                     <a
                         href="/install"
-                        className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-500 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-primary-500/25"
+                        className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-xl font-bold transition-colors shadow-sm"
                     >
                         <Sparkles size={18} />
                         Iniciar Assistente de Instalação
@@ -138,7 +138,7 @@ export const OnboardingOverlay = ({
 
                 {/* Progress Bar */}
                 <div className="mb-8">
-                    <div className="flex items-center justify-between text-sm mb-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-sm mb-2">
                         <span className="text-[var(--ds-text-secondary)]">
                             Progresso: {completedSteps}/{steps.length} configurados
                         </span>
@@ -153,8 +153,8 @@ export const OnboardingOverlay = ({
                     </div>
                     <div className="h-2 bg-[var(--ds-bg-surface)] rounded-full overflow-hidden">
                         <div
-                            className="h-full bg-linear-to-r from-primary-500 to-red-500 transition-all duration-500"
-                            style={{ width: `${progressPercent}%` }}
+                            className="ds-progress-fill h-full"
+                            style={{ transform: `scaleX(${progressPercent / 100})` }}
                         />
                     </div>
 
@@ -197,22 +197,22 @@ export const OnboardingOverlay = ({
                             return (
                                 <div
                                     key={step.id}
-                                    className={`relative rounded-2xl border transition-all duration-300 overflow-hidden ${isConfigured
-                                        ? 'bg-red-500/5 border-red-500/30'
+                                    className={`relative rounded-2xl border transition-colors duration-300 overflow-hidden ${isConfigured
+                                        ? 'bg-[var(--ds-status-success-bg)] border-[var(--ds-status-success)]/30'
                                         : isError
                                             ? 'bg-red-500/5 border-red-500/30'
                                             : isNextStep
-                                                ? 'bg-primary-500/5 border-primary-500/30 ring-2 ring-primary-500/20'
+                                                ? 'bg-primary/5 border-ring/30 ring-2 ring-ring/20'
                                                 : 'bg-[var(--ds-bg-elevated)] border-[var(--ds-border-default)] opacity-60'
                                         }`}
                                 >
                                     {/* Step number badge */}
                                     <div className={`absolute top-4 left-4 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${isConfigured
-                                        ? 'bg-red-500 text-white'
+                                        ? 'bg-primary text-primary-foreground'
                                         : isError
                                             ? 'bg-red-500 text-white'
                                             : isNextStep
-                                                ? 'bg-primary-500 text-white'
+                                                ? 'bg-primary text-primary-foreground'
                                                 : 'bg-[var(--ds-bg-surface)] text-[var(--ds-text-secondary)]'
                                         }`}>
                                         {isConfigured ? <CheckCircle2 size={16} /> : index + 1}
@@ -220,9 +220,9 @@ export const OnboardingOverlay = ({
 
                                     <div className="pl-16 pr-6 py-5">
                                         {/* Header */}
-                                        <div className="flex items-center justify-between mb-2">
-                                            <div className="flex items-center gap-2">
-                                                <h3 className={`font-semibold ${isConfigured ? 'text-red-600 dark:text-red-400' : isError ? 'text-red-600 dark:text-red-400' : 'text-[var(--ds-text-primary)]'
+                                        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                            <div className="flex min-w-0 flex-wrap items-center gap-2">
+                                                <h3 className={`font-semibold ${isConfigured ? 'text-[var(--ds-status-success-text)]' : isError ? 'text-red-600 dark:text-red-400' : 'text-[var(--ds-text-primary)]'
                                                     }`}>
                                                     {step.title}
                                                 </h3>
@@ -233,7 +233,7 @@ export const OnboardingOverlay = ({
                                                 )}
                                             </div>
                                             {isConfigured && (
-                                                <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
+                                                <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
                                                     {step.icon}
                                                 </div>
                                             )}
@@ -251,7 +251,7 @@ export const OnboardingOverlay = ({
                                         )}
 
                                         {isConfigured && (
-                                            <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 mt-3">
+                                            <div className="flex items-center gap-2 text-sm text-[var(--ds-status-success-text)] mt-3">
                                                 <CheckCircle2 size={14} />
                                                 <span>Configurado</span>
                                             </div>
@@ -280,7 +280,7 @@ export const OnboardingOverlay = ({
                                                         href={step.actionUrl}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium text-sm bg-primary-500 hover:bg-primary-400 text-white transition-all"
+                                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium text-sm bg-primary hover:bg-primary/90 text-primary-foreground transition-colors"
                                                     >
                                                         {step.actionLabel}
                                                         <ExternalLink size={14} />
@@ -303,7 +303,7 @@ export const OnboardingOverlay = ({
 
                                     {index < steps.length - 1 && (
                                         <div className="absolute -bottom-4 left-7 z-10">
-                                            <div className={`w-0.5 h-8 ${isConfigured ? 'bg-red-500/30' : 'bg-[var(--ds-bg-surface)]'}`} />
+                                            <div className={`w-0.5 h-8 ${isConfigured ? 'bg-primary/30' : 'bg-[var(--ds-bg-surface)]'}`} />
                                         </div>
                                     )}
                                 </div>
@@ -358,14 +358,14 @@ export const OnboardingOverlay = ({
                 {/* Help links */}
                 <div className="mt-8 pt-6 border-t border-[var(--ds-border-subtle)]">
                     <h4 className="text-sm font-medium text-[var(--ds-text-secondary)] mb-3">Precisa de ajuda?</h4>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <a
                             href="https://vercel.com/docs/storage/upstash"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-2 p-3 bg-[var(--ds-bg-surface)] hover:bg-[var(--ds-bg-surface)] border border-[var(--ds-border-default)] rounded-xl text-sm text-[var(--ds-text-secondary)] transition-colors"
                         >
-                            <Database size={16} className="text-red-600 dark:text-red-400" />
+                            <Database size={16} className="text-primary" />
                             Docs: Upstash no Vercel
                             <ExternalLink size={12} className="text-[var(--ds-text-muted)] ml-auto" />
                         </a>
