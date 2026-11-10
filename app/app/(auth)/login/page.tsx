@@ -10,6 +10,8 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Lock, Eye, EyeOff, LogIn } from 'lucide-react'
 import Image from 'next/image'
+import LoginScene from './LoginScene'
+import styles from './login.module.css'
 
 function LoginForm() {
   const router = useRouter()
@@ -98,20 +100,18 @@ function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-md">
+    <div className={styles.shell}>
       {/* Logo */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl overflow-hidden mb-4">
-          <Image src="/icons/icon-192.png" alt="WhatsFlow" width={64} height={64} className="w-full h-full object-cover" />
-        </div>
-        <h1 className="text-2xl font-bold text-[var(--ds-text-primary)]">
+      <div className={styles.brand}>
+        <Image src="/icons/icon-512.png" alt="WhatsFlow" width={88} height={88} priority className={`${styles.logo} brand-mark brand-mark--pulse`} />
+        <h1 className={styles.title}>
           {companyName || 'WhatsFlow'}
         </h1>
-        <p className="text-[var(--ds-text-secondary)] mt-1">Entre para continuar</p>
+        <p className={styles.subtitle}>Entre para continuar</p>
       </div>
 
       {/* Card */}
-      <div className="bg-[var(--ds-bg-elevated)] border border-[var(--ds-border-default)] rounded-2xl p-6 shadow-xl">
+      <div className={styles.panel}>
         {!isConfigured && isLocalhost && (
           <div className="mb-4 bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success)]/20 rounded-xl p-4">
             <p className="text-sm text-[var(--ds-status-success-text)] font-medium">Modo local</p>
@@ -121,39 +121,44 @@ function LoginForm() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--ds-text-muted)]" />
+        <form onSubmit={handleSubmit} aria-busy={isLoading}>
+          <label htmlFor="login-password" className={styles.label}>Senha de acesso</label>
+          <div className={styles.field}>
+            <Lock className={styles.lock} size={20} aria-hidden="true" />
             <input
+              id="login-password"
+              aria-invalid={!!error}
+              aria-describedby={error ? 'login-error' : undefined}
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Senha"
+              placeholder="Digite sua senha"
               name="password"
               autoComplete="current-password"
-              className="w-full bg-[var(--ds-bg-surface)] border border-[var(--ds-border-default)] rounded-xl pl-11 pr-11 py-3 text-[var(--ds-text-primary)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              autoFocus
+              className={styles.input}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--ds-text-muted)] hover:text-[var(--ds-text-secondary)]"
+              className={styles.eye}
+              aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+              aria-pressed={showPassword}
             >
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
           </div>
 
           {error && (
-            <p className="mt-4 text-[var(--ds-status-error-text)] text-sm">{error}</p>
+            <p id="login-error" role="alert" className={styles.error}>{error}</p>
           )}
 
           <button
             type="submit"
             disabled={isLoading || (!isConfigured && isLocalhost)}
-            className="w-full mt-6 bg-red-600 hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+            className={styles.submit}
           >
             {isLoading ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <><span className={styles.spinner} aria-hidden="true" /><span role="status">Entrando...</span></>
             ) : (
               <>
                 Entrar
@@ -165,13 +170,12 @@ function LoginForm() {
       </div>
 
       {/* Footer */}
-      <p className="text-center text-[var(--ds-text-muted)] text-sm mt-6">
+      <p className={styles.footer}>
         WhatsFlow © {new Date().getFullYear()} | by{' '}
         <a
           href="https://www.instagram.com/luizhenriquexpro/"
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:text-red-500 transition-colors"
         >
           @luizhenrique
         </a>
@@ -182,12 +186,13 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-[var(--ds-bg-base)] flex items-center justify-center p-4">
+    <main className={styles.page}>
+      <LoginScene />
       <Suspense fallback={
-        <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+        <p role="status">Carregando acesso...</p>
       }>
         <LoginForm />
       </Suspense>
-    </div>
+    </main>
   )
 }
