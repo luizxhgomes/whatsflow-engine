@@ -6,11 +6,20 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { HealthStatus } from '@/lib/health-check'
 
-const mocks = vi.hoisted(() => ({ save: vi.fn(), saveMeta: vi.fn(), markComplete: vi.fn(), fetch: vi.fn() }))
-vi.mock('next/navigation', () => ({ usePathname: () => '/', useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }) }))
+const mocks = vi.hoisted(() => ({ save: vi.fn(), saveMeta: vi.fn(), markComplete: vi.fn(), fetch: vi.fn(), push: vi.fn(), onboardingCompleted: false, pathname: '/' }))
+vi.mock('next/navigation', () => {
+  const router = { push: mocks.push, refresh: vi.fn() }
+  return {
+    usePathname: () => mocks.pathname,
+    useRouter: () => router,
+    useSearchParams: () => new URLSearchParams('redirect=%2Finbox'),
+  }
+})
+vi.mock('next/image', () => ({ default: () => null }))
+vi.mock('../(auth)/login/LoginScene', () => ({ default: () => null }))
 vi.mock('@/hooks/useUnreadCount', () => ({ useUnreadCount: () => ({ count: 0 }) }))
 vi.mock('@/hooks/useAccountAlerts', () => ({ useAccountAlerts: () => ({ alerts: [] }) }))
-vi.mock('@/hooks/useOnboardingStatus', () => ({ useOnboardingStatus: () => ({ isCompleted: false, isLoading: false, markComplete: mocks.markComplete, refetch: vi.fn() }) }))
+vi.mock('@/hooks/useOnboardingStatus', () => ({ useOnboardingStatus: () => ({ isCompleted: mocks.onboardingCompleted, isLoading: false, markComplete: mocks.markComplete, refetch: vi.fn() }) }))
 vi.mock('@/components/providers/DevModeProvider', () => ({ useDevMode: () => ({ isDevMode: false }) }))
 vi.mock('@/components/layout/DashboardSidebar', () => ({ DashboardSidebar: () => null }))
 vi.mock('@/components/ui/AccountAlertBanner', () => ({ AccountAlertBanner: () => null }))
@@ -29,6 +38,7 @@ vi.mock('@/components/features/onboarding', async () => ({
   OnboardingChecklist: () => null, ChecklistMiniBadge: () => null, OnboardingOverlay: () => <div>Configuração da infraestrutura</div>,
 }))
 
+import LoginPage from '../(auth)/login/page'
 import { DashboardShell } from './DashboardShell'
 
 const storageKey = 'whatsflow_onboarding_progress_v2'
@@ -58,6 +68,9 @@ function expectNoConnectionChanges() {
 }
 beforeEach(() => {
   vi.clearAllMocks()
+  mocks.fetch.mockReset()
+  mocks.onboardingCompleted = false
+  mocks.pathname = '/'
   vi.stubGlobal('localStorage', new JSDOM('', { url: 'https://dashboard.example.test' }).window.localStorage)
   vi.stubGlobal('fetch', mocks.fetch)
   vi.stubGlobal('React', React)
@@ -127,4 +140,50 @@ describe('optional WhatsApp onboarding', () => {
     expect(JSON.parse(localStorage.getItem(storageKey)!)).toEqual({ ...initialProgress, isChecklistDismissed: true })
     expectNoConnectionChanges()
   })
+})
+
+it('offers the optional connection on a new successful login, even when opening Inbox directly', async () => {
+  localStorage.setItem(storageKey, JSON.stringify({ ...initialProgress, isChecklistDismissed: true }))
+  mocks.fetch.mockImplementation(async (url: string) =>
+    url === '/api/auth/status'
+      ? Response.json({ isConfigured: true, isSetup: true, isAuthenticated: false })
+      : Response.json({ success: true }),
+  )
+
+  const login = render(<LoginPage />)
+  fireEvent.change(screen.getByLabelText('Senha de acesso'), { target: { value: 'test-password' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Entrar', exact: true }))
+  await waitFor(() => expect(mocks.push).toHaveBeenCalledWith('/inbox'))
+  login.unmount()
+
+  // A previous onboarding completion can outlive the Meta credentials.
+  mocks.onboardingCompleted = true
+  mocks.pathname = '/inbox'
+  renderShell()
+
+  await screen.findByRole('dialog', { name: 'Bem-vindo ao WhatsFlow!' })
+  fireEvent.click(screen.getByRole('button', { name: 'Explorar o painel' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(screen.getByRole('button', { name: 'Usar o painel' })).toBeTruthy()
+  expect(mocks.save).not.toHaveBeenCalled()
+  expect(mocks.saveMeta).not.toHaveBeenCalled()
+  expect(mocks.markComplete).not.toHaveBeenCalled()
+})
+
+it('keeps the current onboarding choice when authentication fails', async () => {
+  const previous = JSON.stringify({ ...initialProgress, isChecklistDismissed: true })
+  localStorage.setItem(storageKey, previous)
+  mocks.fetch.mockImplementation(async (url: string) =>
+    url === '/api/auth/status'
+      ? Response.json({ isConfigured: true, isSetup: true, isAuthenticated: false })
+      : Response.json({ error: 'Senha inválida' }, { status: 401 }),
+  )
+
+  render(<LoginPage />)
+  fireEvent.change(screen.getByLabelText('Senha de acesso'), { target: { value: 'invalid' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Entrar', exact: true }))
+  await screen.findByText('Senha inválida')
+
+  expect(localStorage.getItem(storageKey)).toBe(previous)
+  expect(mocks.push).not.toHaveBeenCalled()
 })

@@ -115,11 +115,7 @@ export function DashboardShell({
     const [showGuidedTour, setShowGuidedTour] = useState(false)
     const guidedTour = useGuidedTour()
 
-    // Onboarding status - usa hook dedicado com fallback em localStorage
-    // IMPORTANTE: O hook garante que o modal NUNCA aparece se:
-    // 1. O banco já marcou como completo (fonte da verdade)
-    // 2. OU o localStorage tem o flag (fallback para erros de rede)
-    // 3. OU houve erro na API (assume completo para não incomodar)
+    // O banco guarda a conclusão do guia e o health informa se a conexão existe.
     const { 
         isCompleted: isOnboardingCompletedInDb, 
         isLoading: isOnboardingStatusLoading,
@@ -375,9 +371,10 @@ export function DashboardShell({
         return 'App'
     }
 
-    // Determina se deve mostrar o modal de onboarding do WhatsApp
-    // Aguarda o banco e a preferência local para não reabrir o guia que foi adiado.
-    const showWhatsAppOnboarding = !needsSetup && !isOnboardingStatusLoading && !isOnboardingCompletedInDb
+    // A conexão pode ter sido removida depois que o guia foi concluído.
+    const isWhatsAppUnconfigured = healthStatus?.services.whatsapp?.status === 'not_configured'
+    const showWhatsAppOnboarding = !!healthStatus && !needsSetup && !isOnboardingStatusLoading
+        && (isWhatsAppUnconfigured || !isOnboardingCompletedInDb)
         && isOnboardingProgressLoaded && !onboardingProgress.isChecklistDismissed
 
     // Se WhatsApp já conectado mas onboarding não completo, força ir para step de webhook
@@ -424,9 +421,20 @@ export function DashboardShell({
         )
     }
 
+    const whatsAppOnboarding = showWhatsAppOnboarding && (
+        <OnboardingModal
+            isConnected={!!isWhatsAppConnected}
+            onSaveCredentials={handleSaveCredentials}
+            onMarkComplete={handleMarkOnboardingComplete}
+            forceStep={onboardingForceStep}
+            onClose={dismissChecklist}
+        />
+    )
+
     if (isBuilderRoute) {
         return (
             <PageLayoutProvider>
+                {whatsAppOnboarding}
                 <div
                     className="min-h-screen bg-[var(--ds-bg-base)] text-[var(--ds-text-primary)] flex font-sans selection:bg-primary-500/30"
                     style={{
@@ -449,6 +457,7 @@ export function DashboardShell({
     if (isInboxRoute) {
         return (
             <PageLayoutProvider>
+                {whatsAppOnboarding}
                 <div className="min-h-screen bg-[var(--ds-bg-base)] text-[var(--ds-text-primary)] flex font-sans selection:bg-primary-500/30">
                     {/* Mobile Overlay */}
                     {isMobileMenuOpen && (
@@ -572,16 +581,7 @@ export function DashboardShell({
                     </div>
                 </header>
 
-                {/* WhatsApp Onboarding Modal */}
-                {showWhatsAppOnboarding && (
-                    <OnboardingModal
-                        isConnected={!!isWhatsAppConnected}
-                        onSaveCredentials={handleSaveCredentials}
-                        onMarkComplete={handleMarkOnboardingComplete}
-                        forceStep={onboardingForceStep}
-                        onClose={dismissChecklist}
-                    />
-                )}
+                {whatsAppOnboarding}
 
                 {/* Modal de Tutorial (menu de ajuda) */}
                 {forceModalStep && (

@@ -10,6 +10,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Lock, Eye, EyeOff, LogIn } from 'lucide-react'
 import Image from 'next/image'
+import { clearStoredOnboardingProgress } from '@/components/features/onboarding/hooks/useOnboardingProgress'
 import LoginScene from './LoginScene'
 import styles from './login.module.css'
 
@@ -87,6 +88,8 @@ function LoginForm() {
       if (!response.ok) {
         throw new Error(data.error || 'Erro ao fazer login')
       }
+
+      clearStoredOnboardingProgress()
 
       // Redirect to original destination or dashboard
       router.push(redirectTo)
