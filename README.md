@@ -1,167 +1,105 @@
-# WhatsFlow Engine
+<p align="center">
+  <img src="app/public/icons/icon-192.png" width="72" height="72" alt="Logo do WhatsFlow">
+</p>
 
-![WhatsFlow Engine](docs/assets/social-preview.png)
+<h1 align="center">WhatsFlow Engine</h1>
 
-> Sistema organizacional de disparo em massa no WhatsApp com confiança e credibilidade, construído sobre o uso primário da API Oficial do WhatsApp (Meta Cloud API) e desenhado para ser replicado.
+<p align="center">Organize contatos, campanhas e atendimento pelo WhatsApp em um só painel.</p>
 
-![tests](https://img.shields.io/badge/tests-3.5k%2B-brightgreen) ![license](https://img.shields.io/badge/license-MIT-green) ![release](https://img.shields.io/badge/release-v1.0.0-25D366) ![PRs](https://img.shields.io/badge/PRs-welcome-blue) ![idioma](https://img.shields.io/badge/docs-PT--BR-009B3A) ![stack](https://img.shields.io/badge/Next.js%2016-React%2019-black)
+<p align="center">
+  <a href="https://whatsflow-engine.vercel.app/">Abrir WhatsFlow</a> |
+  <a href="#primeiro-acesso">Primeiro acesso</a> |
+  <a href="#arquitetura-publicada">Arquitetura</a> |
+  <a href="CHANGELOG.md">Histórico de entregas</a>
+</p>
 
-Criado e mantido por **Luiz Henrique** ([@luizxhgomes](https://github.com/luizxhgomes))
+![Dashboard do WhatsFlow com indicadores de contatos, templates, campanhas e Inbox](docs/assets/whatsflow-painel.jpg)
 
----
+*Dashboard em ambiente de demonstração, com a interface da revisão publicada.*
 
-## Visão geral
+<details>
+<summary>Ver a tela de entrada</summary>
 
-O WhatsFlow Engine é um SaaS single-tenant completo de automação de marketing e atendimento no WhatsApp. Ele resolve o problema central do disparo em massa: fazer campanhas em escala **sem queimar o número, sem banimento e sem gambiarras**, porque toda a comunicação passa exclusivamente pela **API Oficial do WhatsApp (Meta Cloud API)**, nunca por bibliotecas não-oficiais de engenharia reversa.
+![Login do WhatsFlow com logo centralizada e trilhas de setas da marca](docs/assets/whatsflow-login.jpg)
 
-O que o torna interessante como referência de construção de sistema é a orquestração ponta a ponta: fila durável com QStash, throttling adaptativo por qualidade de número, templates aprovados pela Meta, rastreio de status por mensagem (enviada, entregue, lida, falhou) e um workflow builder visual para jornadas conversacionais. A camada de IA (Vercel AI SDK v6, multi-provider) responde conversas no inbox com memória persistente.
+</details>
 
-A qualidade é garantida por mais de 3.500 testes (Vitest + Playwright), lint estrito e CI. A arquitetura segue um padrão único e auditável em todas as features: **Page → Hook → Service → API Route**.
+## Primeiro acesso
 
-O sistema foi desenhado para ser **replicado**: um installer automático provisiona Supabase e Vercel, e o guia de setup cobre do app da Meta ao deploy.
+1. Abra o painel e entre com a senha administrativa. [WhatsFlow em produção](https://whatsflow-engine.vercel.app/)
+2. Quando a Meta estiver sem configuração, escolha **Configurar do zero** ou **Explorar o painel**.
+3. Em **Explorar o painel**, você pode cadastrar contatos e conhecer as áreas. O assistente fica fechado durante a sessão, inclusive depois de recarregar, e volta no próximo login enquanto a Meta estiver sem configuração.
+4. Quando quiser habilitar envio e recebimento, retome em **Configurações** ou em **Tutoriais de Configuração**. [Guia de configuração](docs/setup/README.md)
+
+## O que você encontra no painel
+
+| Área | O que você pode fazer |
+|---|---|
+| **Dashboard** | Acompanhar totais de contatos, templates, campanhas e histórico do Inbox em indicadores separados. |
+| **Contatos** | Cadastrar ou importar por CSV, usar tags e campos personalizados e gerenciar opt-in. |
+| **Templates** | Preparar rascunhos, visualizar a mensagem e sincronizar modelos aprovados com a Meta conectada. |
+| **Campanhas** | Montar o público e a mensagem, programar o envio e acompanhar os estados do disparo. |
+| **Inbox** | Organizar conversas, acompanhar a entrega de mensagens e responder pelo canal conectado. |
+| **Workflows e IA** | Desenhar fluxos e configurar agentes de atendimento com os provedores da sua operação. |
+
+Envio e recebimento pelo WhatsApp dependem da conexão com a Meta. Os estados de entrega são atualizados pelos eventos recebidos no webhook. [Integração com a API oficial](docs/seguranca/CONTRATO-API-OFICIAL.md)
+
+## Arquitetura publicada
+
+A interface Next.js e as APIs rodam na Vercel. Os registros ficam no Neon PostgreSQL, acessado pelo PostgREST na VPS com permissão limitada. O Upstash oferece filas e cache, e o Vercel Blob guarda mídias em armazenamento privado.
+
+```mermaid
+flowchart TB
+    P["Painel do WhatsFlow"] --> A["APIs e autenticação na Vercel"]
+    A --> R["PostgREST na VPS"]
+    R --> N[("Neon PostgreSQL")]
+    A --> Q["Upstash QStash"]
+    Q -->|"Execução programada"| A
+    A --> C[("Upstash Redis")]
+    A --> B[("Vercel Blob privado")]
+    A -->|"Quando conectado"| M["WhatsApp Cloud API"]
+    M -->|"Webhooks de mensagens e status"| A
+
+    classDef ui fill:#e6f3eb,stroke:#156f58,color:#14251e;
+    classDef data fill:#e8f1f7,stroke:#2c668e,color:#17354c;
+    classDef channel fill:#e3f2ec,stroke:#167363,color:#123a30;
+    class P,A ui;
+    class N,C,B data;
+    class M channel;
+```
+
+A organização do código segue páginas, hooks, serviços, APIs e adaptadores de integração. [Topologia e domínios do sistema](docs/architecture/TOPOLOGIA.md)
+
+## Evolução verificada
+
+| Entrega | Resultado |
+|---|---|
+| **Infraestrutura própria** | Banco Neon, filas e cache Upstash e mídia privada, com configuração por ambiente. |
+| **Operação do zero** | Base operacional reiniciada após backup, com cadastro e importação disponíveis no painel. |
+| **Onboarding opcional** | Dois logins em produção confirmaram que é possível explorar o painel e receber o convite de configuração novamente no próximo acesso. |
+| **Identidade visual** | Logo oficial no login, animação com pausa, temas claro e escuro e espaçamentos que acompanham a largura da tela. |
+| **Publicação protegida** | O build verifica o CSS referenciado pelo login e pelo dashboard. A revisão corrigida foi conferida em produção, de 320 a 2.880 px, com as rotas principais nas duas larguras extremas. |
+
+**Revisão publicada em 10/11/2026** | [`ec7fab5`](https://github.com/luizxhgomes/whatsflow-engine/commit/ec7fab59d21aa624594d01f1c19a5dea3069213b) | [Changelog](CHANGELOG.md)
+
+## Desenvolvimento local
+
+Use Node.js 22 e selecione a revisão que deseja executar no GitHub. Instale as dependências a partir de `app/`.
 
 ```bash
 git clone https://github.com/luizxhgomes/whatsflow-engine.git
 cd whatsflow-engine/app
-cp .env.example .env   # preencha as credenciais
-npm install && npm run dev
+npm ci
+cp .env.example .env.local
 ```
 
-## Por que API Oficial (confiança e credibilidade)
+Preencha as variáveis do seu ambiente em `.env.local` e execute `npm run dev`. Para gerar e verificar o pacote de produção, use `npm run build`. [Ambientes e configuração](docs/setup/README.md)
 
-| Pilar | Como o engine implementa |
+| Referência | Conteúdo |
 |---|---|
-| **Zero engenharia reversa** | 100% Meta Cloud API. Sem Baileys, sem web-scraping, sem risco de ban por protocolo. |
-| **Templates aprovados** | Ciclo completo de criação, submissão e aprovação de templates HSM direto pela Meta. |
-| **Qualidade de número** | Throttling adaptativo (`WHATSAPP_ADAPTIVE_*`): a taxa de envio reage ao rating de qualidade do número. |
-| **Opt-in e rastreabilidade** | Contatos com origem rastreada, import CSV validado, status por mensagem via webhooks assinados (HMAC). |
-| **Rate limits respeitados** | Fila durável QStash com concorrência configurável e retry com backoff. |
+| [Documentação](docs/README.md) | Navegação pelos guias, arquitetura e segurança. |
+| [Checklist de publicação](docs/guides/deploy-checklist.md) | Build, CSS entregue, login e conferência visual no domínio. |
+| [Lições do projeto](lessons.md) | Regras registradas a partir dos incidentes e da validação. |
+| [Contribuição](CONTRIBUTING.md) | Orientações para colaborar no código. |
 
-## Arquitetura do disparo
-
-```mermaid
-%%{init: {'theme':'base','themeVariables':{
-  'background':'#0B141A','primaryColor':'#0F2620','primaryTextColor':'#E9EDEF',
-  'primaryBorderColor':'#25D366','lineColor':'#00A884','secondaryColor':'#075E54',
-  'tertiaryColor':'#111B21','fontSize':'15px','edgeLabelBackground':'#0B141A',
-  'clusterBkg':'#111B21','clusterBorder':'#128C7E'}}}%%
-flowchart LR
-    subgraph ORQ[" Orquestração "]
-        A["Campanha<br/>criada"] --> B["Fila durável<br/>QStash"]
-        W["Flows: jornadas<br/>automatizadas<br/>(workflow builder)"] --> B
-        B --> C{"Throttling<br/>adaptativo"}
-    end
-    subgraph ENV[" Envio pela API Oficial "]
-        C --> D["Meta Cloud API"]
-        D --> E["WhatsApp<br/>do contato"]
-    end
-    subgraph FBK[" Feedback loop "]
-        D --> F["Webhook de status<br/>assinado HMAC"]
-        F --> R[("Redis: memória quente<br/>dedup de eventos ·<br/>última mensagem ·<br/>cache de settings")]
-        R --> G[("Supabase<br/>fonte da verdade")]
-        G --> H["Métricas por mensagem<br/>enviada · entregue · lida · falhou"]
-    end
-    E -.->|"resposta do contato (inbound)"| W
-    H -.->|"qualidade do número regula a taxa"| C
-
-    style A fill:#111B21,stroke:#128C7E,color:#E9EDEF
-    style B fill:#0F2620,stroke:#25D366,color:#E9EDEF
-    style C fill:#075E54,stroke:#57D163,color:#FFFFFF
-    style W fill:#075E54,stroke:#57D163,color:#FFFFFF
-    style D fill:#128C7E,stroke:#57D163,color:#FFFFFF
-    style E fill:#0F2620,stroke:#25D366,color:#D9FDD3
-    style R fill:#111B21,stroke:#00A884,color:#E9EDEF
-    style F fill:#111B21,stroke:#00A884,color:#E9EDEF
-    style G fill:#111B21,stroke:#00A884,color:#E9EDEF
-    style H fill:#0F2620,stroke:#25D366,color:#D9FDD3
-```
-
-Três engrenagens sustentam o desenho:
-
-- **Laço de credibilidade** (tracejado inferior): as métricas de qualidade do número realimentam o throttling, o sistema desacelera sozinho antes de comprometer a reputação do número.
-- **Memória quente no Redis**: cada evento de webhook passa pelo dedup (`SET NX` com TTL), a última mensagem de cada conversa fica em `ai:lastmsg:*` para o debounce da IA responder com contexto fresco, e as settings ganham cache com TTL. O Supabase permanece a fonte da verdade; o Redis é a camada de velocidade.
-- **Flows (jornadas automatizadas)**: o workflow builder visual (React Flow) constrói jornadas que reagem à resposta do contato (inbound) e reentram na fila de envio, com estado de conversa persistido em `workflow_conversations`.
-
-Padrão de código em todas as features:
-
-```
-Page (App Router) → Hook (estado/TanStack Query) → Service (regra de negócio) → API Route (integração)
-```
-
-## Estrutura do repositório
-
-```
-whatsflow-engine/
-├── app/                      # o sistema (Next.js 16)
-│   ├── app/                  #   34 páginas + 217 rotas de API
-│   ├── components/ hooks/ services/ lib/   # camadas (ver abaixo)
-│   ├── supabase/migrations/  #   schema (35+ tabelas, 7 domínios)
-│   └── infra/                #   Docker, VPS, deploy
-└── docs/
-    ├── architecture/         # ADRs + TOPOLOGIA.md (documento único de topologia)
-    ├── setup/                # replicação passo a passo
-    └── prd/ epics/ stories/  # metodologia story-driven
-```
-
-Topologia completa (física, lógica, execução, dados e replicação):
-**[`docs/architecture/TOPOLOGIA.md`](docs/architecture/TOPOLOGIA.md)**
-
-## Componentes
-
-| Componente | Quantidade |
-|---|---|
-| Rotas de API | 217 |
-| Páginas (App Router) | 34 |
-| Componentes React | 444 |
-| Hooks | 61 |
-| Migrations Supabase | 10 |
-| Arquivos de teste | 114 (3.500+ testes) |
-
-Funcionalidades: inbox de atendimento com visual WhatsApp Business, campanhas em massa com métricas, contatos + import CSV, templates HSM com preview fiel, workflow builder visual (React Flow), installer automático (Supabase + Vercel), diagnóstico da integração Meta, push notifications, IA multi-provider com memória.
-
-## Stack
-
-Next.js 16 (App Router, Turbopack) · React 19 · TypeScript 5.7 · Supabase (Postgres + Auth + Storage) · Upstash QStash + Redis · Meta WhatsApp Cloud API · Vercel AI SDK v6 (Anthropic, OpenAI, Google) · Tailwind 4 + Radix/shadcn · Vitest + Playwright.
-
-## Replique em 30 minutos
-
-1. **Supabase**: crie um projeto e rode as migrations de `app/supabase/migrations/`.
-2. **Meta**: crie um app WhatsApp Business, conecte o WABA, gere token permanente e configure o webhook (guia em [`docs/setup/`](docs/setup/README.md)).
-3. **Upstash**: crie o QStash e o Redis, copie tokens.
-4. **Variáveis**: `cp app/.env.example app/.env` e preencha.
-5. **Deploy**: Vercel (recomendado) ou Docker/VPS (`app/infra/`). O installer embutido (`/api/installer`) automatiza o provisionamento.
-
-Guias completos: [`docs/setup/README.md`](docs/setup/README.md) · [`docs/guides/`](docs/guides/) · [`app/infra/DEPLOY-GUIDE.md`](app/infra/DEPLOY-GUIDE.md)
-
-## Segurança e garantias
-
-Três documentos sustentam o lema do sistema, escritos a partir de auditoria do código real:
-
-- [`docs/seguranca/GARANTIAS-ANTI-BLOQUEIO.md`](docs/seguranca/GARANTIAS-ANTI-BLOQUEIO.md): playbook preventivo contra bloqueios da Meta (opt-in, aquecimento, tiers, throttling por qualidade, LGPD) com checklist pré-campanha.
-- [`docs/seguranca/GARANTIAS-DE-ENTREGA.md`](docs/seguranca/GARANTIAS-DE-ENTREGA.md): o que o sistema garante no disparo (HMAC, dedup, fila, retry, status por mensagem) e como testar cada garantia.
-- [`docs/seguranca/CONTRATO-API-OFICIAL.md`](docs/seguranca/CONTRATO-API-OFICIAL.md): mapa das correspondências com a Meta Cloud API: tipos de mensagem, janela de 24 horas e códigos de erro.
-
-A jornada completa de implantação white-label vive em [`docs/onboarding/`](docs/onboarding/README.md): 5 fases com gates verificáveis, do install à operação contínua, mais o roadmap estratégico priorizado.
-
-## Metodologia
-
-Desenvolvimento story-driven: PRD → epics → stories com acceptance criteria → implementação → QA gate. Os artefatos reais estão versionados em [`docs/prd/`](docs/prd/), [`docs/epics/`](docs/epics/) e [`docs/stories/`](docs/stories/) como registro do método.
-
-## Regras inegociáveis
-
-1. Somente API Oficial da Meta, nenhuma dependência de protocolo não-oficial.
-2. Nenhum segredo no repositório, tudo via variáveis de ambiente (`.env.example` documenta o contrato).
-3. Disparo responsável, throttling, opt-in e templates aprovados não são opcionais.
-4. Todo código novo entra com teste.
-
-## Contribuindo
-
-Veja [CONTRIBUTING.md](CONTRIBUTING.md). Issues e PRs são bem-vindos.
-
-## Licença
-
-[MIT](LICENSE). WhatsApp e Meta são marcas de seus respectivos donos; este projeto não representa afiliação oficial com a Meta.
-
-## Autor
-
-**Luiz Henrique**, engenharia de sistemas de IA e automação · [@luizxhgomes](https://github.com/luizxhgomes)
+Mantido por **Luiz Henrique**. [GitHub do autor](https://github.com/luizxhgomes) | [Licença MIT](LICENSE)

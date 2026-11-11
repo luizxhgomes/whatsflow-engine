@@ -7,7 +7,7 @@
     "dev": "next dev --turbopack",
     "dev:ai": "AI_DEVTOOLS=1 next dev --turbopack",
     "ai:devtools": "npx @ai-sdk/devtools",
-    "build": "next build",
+    "build": "next build && node scripts/verify-brand-css.mjs",
     "start": "next start",
     "lint": "eslint app components hooks lib services scripts utils --ext .js,.jsx,.ts,.tsx,.mjs,.cjs",
     "test": "vitest run",
@@ -43,8 +43,9 @@
     "@helicone/ai-sdk-provider": "^1.0.12",
     "@hookform/resolvers": "^5.2.2",
     "@marcbachmann/cel-js": "^6.3.2",
-    "@mem0/vercel-ai-provider": "^2.0.5",
     "@monaco-editor/react": "^4.7.0",
+    "@neon/config": "^1.14.0",
+    "@neon/env": "^2.1.3",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-avatar": "^1.1.11",
@@ -66,6 +67,7 @@
     "@radix-ui/react-toggle": "^1.1.10",
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@supabase/postgrest-js": "^2.119.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.86.2",
     "@tailwindcss/postcss": "^4.1.17",
@@ -79,6 +81,7 @@
     "@upstash/qstash": "^2.9.0",
     "@upstash/redis": "^1.36.2",
     "@upstash/workflow": "^1.1.1",
+    "@vercel/blob": "^2.9.0",
     "@xyflow/react": "^12.9.2",
     "ai": "^6.0.97",
     "babel-plugin-react-compiler": "^1.0.0",
@@ -89,6 +92,7 @@
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "geist": "^1.5.1",
+    "jose": "^6.2.17",
     "jotai": "^2.15.1",
     "jszip": "^3.10.1",
     "libphonenumber-js": "^1.12.29",
@@ -97,7 +101,7 @@
     "monaco-editor": "^0.52.0",
     "motion": "^12.23.24",
     "nanoid": "^5.1.6",
-    "next": "^16.1.6",
+    "next": "^16.4.6",
     "next-themes": "^0.4.6",
     "papaparse": "^5.5.3",
     "pg": "^8.16.3",
@@ -116,6 +120,7 @@
     "sonner": "^2.0.7",
     "swagger-ui-react": "^5.31.0",
     "tailwind-merge": "^3.4.0",
+    "three": "0.187.0",
     "tippy.js": "^6.3.7",
     "use-stick-to-bottom": "^1.1.1",
     "vaul": "^1.1.2",
@@ -124,7 +129,7 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
-    "@next/eslint-plugin-next": "^16.1.6",
+    "@next/eslint-plugin-next": "^16.4.6",
     "@playwright/test": "^1.49.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.0.1",
@@ -134,6 +139,7 @@
     "@types/pg": "^8.15.6",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@types/three": "0.187.0",
     "@types/web-push": "^3.6.4",
     "@vitejs/plugin-react": "^4.3.4",
     "@vitest/coverage-v8": "^4.0.15",
@@ -156,6 +162,9 @@
     "vitest": "^4.0.15"
   },
   "overrides": {
-    "jsondiffpatch": "^0.7.2"
+    "jsondiffpatch": "^0.7.2",
+    "@vercel/oidc": {
+      "@vercel/cli-config": "^0.3.8"
+    }
   }
 }

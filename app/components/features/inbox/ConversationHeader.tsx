@@ -193,11 +193,11 @@ export function ConversationHeader({
     conversationLabels?.some((l) => l.id === labelId) ?? false
 
   return (
-    <div className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--wa-border)] bg-[var(--wa-panel-header)]">
+    <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 md:flex-nowrap border-b border-[var(--wa-border)] bg-[var(--wa-panel-header)]">
       {/* Contact info - WhatsApp style */}
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
         {/* WhatsApp avatar - green circle */}
-        <div className="relative">
+        <div className="relative shrink-0">
           <div className="h-10 w-10 rounded-full bg-[var(--wa-unread-badge)]/20 flex items-center justify-center shrink-0">
             <span className="text-sm font-semibold text-[var(--wa-unread-badge)]">{initials}</span>
           </div>
@@ -245,13 +245,13 @@ export function ConversationHeader({
       </div>
 
       {/* Actions - compact */}
-      <div className="flex items-center gap-1">
+      <div className="flex flex-wrap items-center gap-1">
         {/* Memories quick access */}
         <Tooltip>
           <TooltipTrigger asChild>
             <button
               onClick={() => setShowMemoriesSheet(true)}
-              className="h-7 w-7 flex items-center justify-center text-violet-400 hover:text-violet-300 rounded-lg hover:bg-violet-500/10 transition-colors"
+              className="h-11 w-11 md:h-7 md:w-7 flex items-center justify-center text-violet-400 hover:text-violet-300 rounded-lg hover:bg-violet-500/10 transition-colors"
             >
               <Brain className="h-4 w-4" />
             </button>
@@ -268,11 +268,11 @@ export function ConversationHeader({
               onClick={onModeToggle}
               disabled={isUpdating || !isOpen}
               className={cn(
-                'h-6 px-2 rounded-full text-[10px] font-medium flex items-center gap-1 transition-all',
+                'h-11 md:h-6 px-2 rounded-full text-[10px] font-medium flex items-center gap-1 transition-all',
                 isUpdating || !isOpen ? 'opacity-50 cursor-not-allowed' : '',
                 isBotMode
                   ? aiGlobalEnabled
-                    ? 'bg-red-500/15 text-red-400 hover:bg-red-500/25'
+                    ? 'bg-primary/15 text-primary hover:bg-primary/25'
                     : 'bg-zinc-500/15 text-zinc-400 hover:bg-zinc-500/25'
                   : 'bg-amber-500/15 text-amber-400 hover:bg-amber-500/25'
               )}
@@ -311,7 +311,7 @@ export function ConversationHeader({
         {/* More actions menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="h-7 w-7 flex items-center justify-center text-[var(--ds-text-muted)] hover:text-[var(--ds-text-secondary)] rounded-lg hover:bg-[var(--ds-bg-hover)] transition-colors">
+            <button className="h-11 w-11 md:h-7 md:w-7 flex items-center justify-center text-[var(--ds-text-muted)] hover:text-[var(--ds-text-secondary)] rounded-lg hover:bg-[var(--ds-bg-hover)] transition-colors">
               <MoreVertical className="h-4 w-4" />
             </button>
           </DropdownMenuTrigger>
@@ -429,7 +429,7 @@ export function ConversationHeader({
               <DropdownMenuItem
                 onClick={onResume}
                 disabled={isResuming}
-                className="text-red-400"
+                className="text-primary"
               >
                 <PlayCircle className="h-4 w-4 mr-2" />
                 {isResuming ? 'Resumindo...' : 'Retomar automação'}

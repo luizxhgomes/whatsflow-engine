@@ -20,7 +20,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { ConversationList } from './ConversationList'
 import { MessagePanel } from './MessagePanel'
-import { RefreshCw, MessageSquare, Users } from 'lucide-react'
+import { ArrowLeft, RefreshCw, MessageSquare, Users } from 'lucide-react'
 import type {
   InboxConversation,
   InboxMessage,
@@ -144,8 +144,8 @@ export function InboxView({
   // Panel-specific error fallbacks - matching seamless background
   const ConversationListFallback = (
     <div className="h-full flex flex-col items-center justify-center p-4 text-center bg-[var(--ds-bg-elevated)]">
-      <div className="w-10 h-10 mb-3 rounded-full bg-[var(--ds-bg-surface)] flex items-center justify-center">
-        <Users className="w-5 h-5 text-[var(--ds-text-muted)]" />
+      <div className="ds-icon-tile mb-3" data-tone="error" aria-hidden="true">
+        <Users className="size-1/2" />
       </div>
       <p className="text-sm text-[var(--ds-text-secondary)] mb-3">Erro ao carregar</p>
       <button
@@ -160,8 +160,8 @@ export function InboxView({
 
   const MessagePanelFallback = (
     <div className="h-full flex flex-col items-center justify-center p-4 text-center bg-[var(--ds-bg-base)]">
-      <div className="w-10 h-10 mb-3 rounded-full bg-[var(--ds-bg-surface)] flex items-center justify-center">
-        <MessageSquare className="w-5 h-5 text-[var(--ds-text-muted)]" />
+      <div className="ds-icon-tile mb-3" data-tone="error" aria-hidden="true">
+        <MessageSquare className="size-1/2" />
       </div>
       <p className="text-sm text-[var(--ds-text-secondary)] mb-3">Erro ao carregar</p>
       <button
@@ -174,76 +174,95 @@ export function InboxView({
     </div>
   )
 
+  const conversationList = (
+    <ErrorBoundary fallback={ConversationListFallback}>
+      <ConversationList
+        conversations={conversations}
+        selectedId={selectedConversationId}
+        onSelect={handleSelectConversation}
+        isLoading={isLoadingConversations}
+        totalUnread={totalUnread}
+        labels={labels}
+        search={search}
+        onSearchChange={onSearchChange}
+        statusFilter={statusFilter}
+        onStatusFilterChange={onStatusFilterChange}
+        modeFilter={modeFilter}
+        onModeFilterChange={onModeFilterChange}
+        labelFilter={labelFilter}
+        onLabelFilterChange={onLabelFilterChange}
+      />
+    </ErrorBoundary>
+  )
+  const messagePanel = (
+    <ErrorBoundary fallback={MessagePanelFallback}>
+      <MessagePanel
+        conversation={selectedConversation}
+        messages={messages}
+        labels={labels}
+        quickReplies={quickReplies}
+        isLoadingConversation={isLoadingSelectedConversation}
+        isLoadingMessages={isLoadingMessages}
+        isLoadingMore={isLoadingMoreMessages}
+        isSending={isSending}
+        quickRepliesLoading={quickRepliesLoading}
+        onRefreshQuickReplies={onRefreshQuickReplies}
+        hasMoreMessages={hasMoreMessages}
+        onLoadMore={onLoadMoreMessages}
+        onSendMessage={onSendMessage}
+        onModeToggle={onModeToggle}
+        onClose={onCloseConversation}
+        onReopen={onReopenConversation}
+        onPriorityChange={onPriorityChange}
+        onLabelToggle={onLabelToggle}
+        onHandoff={onHandoff}
+        onReturnToBot={onReturnToBot}
+        onDelete={onDeleteConversation}
+        onConfigureAgent={onConfigureAgent}
+        isUpdating={isUpdatingConversation}
+        isHandingOff={isHandingOff}
+        isReturningToBot={isReturningToBot}
+        isDeleting={isDeletingConversation}
+      />
+    </ErrorBoundary>
+  )
+
   return (
     <TooltipProvider delayDuration={300}>
-      {/* Full height container - uses parent height from PageLayoutScope */}
-      <div className="h-full bg-[var(--wa-bg)]">
+      <div className="h-full min-h-0 bg-[var(--wa-bg)]">
         <ResizablePanelGroup direction="horizontal" className="h-full">
-          {/* Conversation list sidebar - subtle shadow instead of border */}
           <ResizablePanel
             defaultSize={28}
             minSize={22}
             maxSize={38}
-            className="relative"
+            className={selectedConversationId ? 'relative hidden md:block' : 'relative block'}
+            role="region"
+            aria-label="Lista de conversas"
           >
-            {/* Sidebar with subtle right shadow for depth */}
             <div className="h-full shadow-[1px_0_8px_-2px_rgba(0,0,0,0.3)]">
-              <ErrorBoundary fallback={ConversationListFallback}>
-                <ConversationList
-                  conversations={conversations}
-                  selectedId={selectedConversationId}
-                  onSelect={handleSelectConversation}
-                  isLoading={isLoadingConversations}
-                  totalUnread={totalUnread}
-                  labels={labels}
-                  search={search}
-                  onSearchChange={onSearchChange}
-                  statusFilter={statusFilter}
-                  onStatusFilterChange={onStatusFilterChange}
-                  modeFilter={modeFilter}
-                  onModeFilterChange={onModeFilterChange}
-                  labelFilter={labelFilter}
-                  onLabelFilterChange={onLabelFilterChange}
-                />
-              </ErrorBoundary>
+              {conversationList}
             </div>
           </ResizablePanel>
-
-          {/* Invisible resize handle - functional but not visual */}
-          <ResizableHandle className="w-px bg-transparent hover:bg-[var(--ds-border-strong)] transition-colors" />
-
-          {/* Message panel - main content area */}
-          <ResizablePanel defaultSize={72} minSize={50}>
-            <ErrorBoundary fallback={MessagePanelFallback}>
-              <MessagePanel
-                conversation={selectedConversation}
-                messages={messages}
-                labels={labels}
-                quickReplies={quickReplies}
-                isLoadingConversation={isLoadingSelectedConversation}
-                isLoadingMessages={isLoadingMessages}
-                isLoadingMore={isLoadingMoreMessages}
-                isSending={isSending}
-                quickRepliesLoading={quickRepliesLoading}
-                onRefreshQuickReplies={onRefreshQuickReplies}
-                hasMoreMessages={hasMoreMessages}
-                onLoadMore={onLoadMoreMessages}
-                onSendMessage={onSendMessage}
-                onModeToggle={onModeToggle}
-                onClose={onCloseConversation}
-                onReopen={onReopenConversation}
-                onPriorityChange={onPriorityChange}
-                onLabelToggle={onLabelToggle}
-                onHandoff={onHandoff}
-                onReturnToBot={onReturnToBot}
-                onDelete={onDeleteConversation}
-                onConfigureAgent={onConfigureAgent}
-                isUpdating={isUpdatingConversation}
-                isHandingOff={isHandingOff}
-                isReturningToBot={isReturningToBot}
-                isDeleting={isDeletingConversation}
-              />
-            </ErrorBoundary>
+          <ResizableHandle className="hidden w-px bg-transparent hover:bg-[var(--ds-border-strong)] transition-colors md:flex" />
+          <ResizablePanel
+            defaultSize={72}
+            minSize={50}
+            className={selectedConversationId ? 'block' : 'hidden md:block'}
+            role="region"
+            aria-label="Conversa selecionada"
+          >
+            <div className="flex h-full min-h-0 flex-col">
+              <button
+                type="button"
+                onClick={() => onSelectConversation(null)}
+                className="flex min-h-11 shrink-0 items-center gap-2 border-b border-[var(--wa-border)] bg-[var(--wa-panel-header)] px-4 text-sm text-primary focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-[-2px] md:hidden"
+                aria-label="Voltar para conversas"
+              >
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                Voltar
+              </button>
+              <div className="min-h-0 flex-1">{messagePanel}</div>
+            </div>
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>

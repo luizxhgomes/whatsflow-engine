@@ -1,3 +1,4 @@
+import { uploadPrivateMedia } from '@/lib/media-storage'
 import { serve } from '@upstash/workflow/nextjs'
 import { campaignDb, templateDb } from '@/lib/supabase-db'
 import { supabase } from '@/lib/supabase'
@@ -686,7 +687,7 @@ const workflowHandler = serve<CampaignWorkflowInput>(
           let refreshPromise: Promise<any | null> | null = null
 
           // Fallback: quando o weblink retornado pela Meta não é acessível pelos servidores do WhatsApp,
-          // tentamos baixar a mídia no backend e re-hospedar em um URL público (Supabase Storage).
+          // tentamos baixar a mídia no backend e armazenar no Blob privado e entregar por URL assinada.
           type HostedHeaderMediaResult = {
             url: string
             mode: 'public' | 'signed'
@@ -862,130 +863,39 @@ const workflowHandler = serve<CampaignWorkflowInput>(
                 }
                 if (typeof downloaded.size === 'number' && downloaded.size > maxBytes) return null
 
-                const client = supabase.admin
-                if (!client) return null
-
-                const bucket = String(process.env.SUPABASE_TEMPLATE_MEDIA_BUCKET || 'wa-template-media')
-                // Best-effort: cria bucket público se não existir.
-                try {
-                  await client.storage.createBucket(bucket, { public: true })
-                } catch {
-                  // ignore (já existe / sem permissão)
-                }
-
-                // Best-effort: se o bucket já existia e estava privado, tentamos torná-lo público.
-                // (Caso contrário, getPublicUrl vai gerar um URL que retorna 403.)
-                try {
-                  await client.storage.updateBucket(bucket, { public: true })
-                } catch {
-                  // ignore
-                }
-
                 const contentType = downloaded.contentType || 'application/octet-stream'
                 const ext = guessExtFromContentType(contentType)
                 const urlHash = createHash('sha256').update(example).digest('hex').slice(0, 12)
-                const specHash = String((active as any)?.spec_hash || (active as any)?.specHash || 'na')
+                const specHash = String((active as any)?.spec_hash || (active as any)?.specHash || 'na').replace(/[^a-zA-Z0-9_-]/g, '_')
                 const safeName = String(templateName || 'template').replace(/[^a-zA-Z0-9_\-]/g, '_')
                 const path = `templates/${safeName}/${specHash}_${urlHash}.${ext}`
-
-                const up = await client.storage
-                  .from(bucket)
-                  .upload(path, downloaded.buffer, {
-                    contentType,
-                    upsert: true,
-                    cacheControl: '3600',
-                  })
-
-                if (up.error) return null
-
-                const pub = client.storage.from(bucket).getPublicUrl(path)
-                const publicUrl = pub?.data?.publicUrl
-
-                // Proba rápida: valida se o URL público realmente é acessível sem auth.
-                // Se retornar 403/401, caímos para signed URL (TTL alto), que costuma funcionar melhor com a Meta.
-                const probeTimeoutMs = Number(process.env.MEDIA_PUBLIC_PROBE_TIMEOUT_MS || '8000')
-                const probe = async (url: string) => {
-                  try {
-                    const controller = new AbortController()
-                    const t = setTimeout(() => controller.abort(), probeTimeoutMs)
-                    try {
-                      const res = await fetch(url, { method: 'GET', signal: controller.signal })
-                      return res.status
-                    } finally {
-                      clearTimeout(t)
-                    }
-                  } catch {
-                    return 0
-                  }
+                const hosted = await uploadPrivateMedia(path, downloaded.buffer, contentType)
+                const controller = new AbortController()
+                const timeout = setTimeout(() => controller.abort(), Number(process.env.MEDIA_PUBLIC_PROBE_TIMEOUT_MS || '8000'))
+                let status: number
+                try {
+                  status = (await fetch(hosted.url, { method: 'HEAD', signal: controller.signal })).status
+                } finally {
+                  clearTimeout(timeout)
                 }
-
-                if (publicUrl) {
-                  const status = await probe(publicUrl)
-                  if (status >= 200 && status < 300) {
-                    hostedHeaderMediaForBatch = {
-                      url: publicUrl,
-                      mode: 'public',
-                      bucket,
-                      path,
-                      contentType,
-                      size: downloaded.size,
-                      downloadStatus: downloaded.status,
-                      publicProbeStatus: status,
-                    }
-                    try {
-                      const exampleHash = createHash('sha256').update(example).digest('hex').slice(0, 32)
-                      await supabase
-                        .from('templates')
-                        .update({
-                          header_media_preview_url: publicUrl,
-                          header_media_preview_expires_at: null,
-                          header_media_hash: exampleHash,
-                          header_media_preview_updated_at: new Date().toISOString(),
-                          updated_at: new Date().toISOString(),
-                        })
-                        .eq('name', templateName)
-                    } catch {
-                      // best-effort
-                    }
-                    return hostedHeaderMediaForBatch
-                  }
-
-                  // Se não é acessível publicamente, tenta signed URL.
-                  const expiresIn = Number(process.env.MEDIA_SIGNED_URL_TTL_SECONDS || String(24 * 60 * 60))
-                  const signed = await client.storage.from(bucket).createSignedUrl(path, expiresIn)
-                  const signedUrl = signed?.data?.signedUrl
-                  if (signedUrl) {
-                    hostedHeaderMediaForBatch = {
-                      url: signedUrl,
-                      mode: 'signed',
-                      bucket,
-                      path,
-                      contentType,
-                      size: downloaded.size,
-                      downloadStatus: downloaded.status,
-                      publicProbeStatus: status,
-                      signedExpiresIn: expiresIn,
-                    }
-                    try {
-                      const exampleHash = createHash('sha256').update(example).digest('hex').slice(0, 32)
-                      await supabase
-                        .from('templates')
-                        .update({
-                          header_media_preview_url: signedUrl,
-                          header_media_preview_expires_at: new Date(Date.now() + expiresIn * 1000).toISOString(),
-                          header_media_hash: exampleHash,
-                          header_media_preview_updated_at: new Date().toISOString(),
-                          updated_at: new Date().toISOString(),
-                        })
-                        .eq('name', templateName)
-                    } catch {
-                      // best-effort
-                    }
-                    return hostedHeaderMediaForBatch
-                  }
+                if (status < 200 || status >= 300) return null
+                hostedHeaderMediaForBatch = {
+                  url: hosted.url, mode: 'signed', bucket: 'private-blob', path,
+                  contentType, size: downloaded.size, downloadStatus: downloaded.status,
+                  publicProbeStatus: status, signedExpiresIn: hosted.expiresIn,
                 }
-
-                return null
+                try {
+                  await supabase.from('templates').update({
+                    header_media_preview_url: hosted.url,
+                    header_media_preview_expires_at: hosted.expiresAt,
+                    header_media_hash: createHash('sha256').update(example).digest('hex').slice(0, 32),
+                    header_media_preview_updated_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                  }).eq('name', templateName)
+                } catch {
+                  // A falha do cache não invalida o arquivo já armazenado.
+                }
+                return hostedHeaderMediaForBatch
               } catch (e) {
                 console.warn('[Workflow] Falha ao re-hospedar mídia do header (best-effort):', e)
                 return null

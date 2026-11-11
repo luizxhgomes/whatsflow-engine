@@ -162,8 +162,8 @@ export function SendFirstMessageStep({
           ${sendStatus === 'sending' ? 'bg-orange-500/20 animate-pulse' : ''}
           ${sendStatus === 'success' ? 'bg-red-500/20' : ''}
           ${sendStatus === 'error' ? 'bg-amber-500/20' : ''}
-          ${sendStatus === 'idle' ? 'bg-gradient-to-br from-red-500/20 to-teal-500/20' : ''}
-        `}>
+          ${sendStatus === 'idle' ? 'ds-icon-tile' : ''}
+        `} data-size="hero" aria-hidden="true">
           {sendStatus === 'sending' && (
             <Loader2 className="w-10 h-10 text-orange-400 animate-spin" />
           )}
@@ -174,7 +174,7 @@ export function SendFirstMessageStep({
             <AlertCircle className="w-10 h-10 text-amber-400" />
           )}
           {sendStatus === 'idle' && (
-            <Send className="w-10 h-10 text-red-400" />
+            <Send className="size-1/2" />
           )}
         </div>
       </div>

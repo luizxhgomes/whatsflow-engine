@@ -1,4 +1,6 @@
-# Changelog
+# Histórico de documentação
+
+O [changelog do projeto](../CHANGELOG.md) reúne as entregas publicadas. Este arquivo preserva o registro histórico da organização do repositório.
 
 Todas as mudanças relevantes deste repositório serão documentadas aqui.
 

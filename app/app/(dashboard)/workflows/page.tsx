@@ -53,7 +53,7 @@ function StatusBadge({ status }: { status?: string }) {
   const normalized = (status || "draft").toLowerCase();
   if (normalized === "published") {
     return (
-      <span className="inline-flex items-center rounded-md border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-xs font-medium text-red-300">
+      <span className="inline-flex items-center rounded-md border border-ring/20 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
         Publicado
       </span>
     );
@@ -335,11 +335,11 @@ export default function WorkflowsPage() {
             Crie e gerencie os fluxos do builder.
           </PageDescription>
         </div>
-        <PageActions>
+        <PageActions className="flex-wrap">
           <Button
             variant="outline"
             onClick={() => refetch()}
-            className="border-white/10 bg-zinc-950/40 hover:bg-white/5 text-gray-200"
+            className="border-border bg-zinc-950/40 hover:bg-muted text-gray-200"
             disabled={isFetching}
           >
             <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
@@ -348,7 +348,7 @@ export default function WorkflowsPage() {
           <Button
             variant="outline"
             onClick={handleImport}
-            className="border-white/10 bg-zinc-950/40 hover:bg-white/5 text-gray-200"
+            className="border-border bg-zinc-950/40 hover:bg-muted text-gray-200"
           >
             <Upload className="h-4 w-4" />
             Importar
@@ -357,8 +357,8 @@ export default function WorkflowsPage() {
             variant="outline"
             onClick={() => setShowTemplates(!showTemplates)}
             className={cn(
-              "border-white/10 bg-zinc-950/40 hover:bg-white/5 text-gray-200",
-              showTemplates && "border-red-500/40 bg-red-500/10"
+              "border-border bg-zinc-950/40 hover:bg-muted text-gray-200",
+              showTemplates && "border-ring/40 bg-primary/10"
             )}
           >
             <LayoutTemplate className="h-4 w-4" />
@@ -366,9 +366,9 @@ export default function WorkflowsPage() {
           </Button>
           <Button
             onClick={handleCreate}
-            className="bg-red-500 text-black hover:bg-red-400 transition-colors"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            <Plus className="h-4 w-4 text-red-900" />
+            <Plus className="h-4 w-4 text-primary-foreground" />
             Novo fluxo
           </Button>
         </PageActions>
@@ -376,17 +376,17 @@ export default function WorkflowsPage() {
 
       {/* Template Gallery */}
       {showTemplates && (
-        <div className="mb-4 rounded-2xl border border-white/5 bg-zinc-950/60 p-4">
+        <div className="mb-4 rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2 text-sm font-semibold text-white">
-              <LayoutTemplate className="h-4 w-4 text-red-400" />
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <LayoutTemplate className="h-4 w-4 text-primary" />
               Templates Prontos
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowTemplates(false)}
-              className="text-gray-400 hover:text-white"
+              className="text-muted-foreground hover:text-foreground"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -401,8 +401,8 @@ export default function WorkflowsPage() {
                 className={cn(
                   "rounded-full px-3 py-1 text-xs transition",
                   !templateCategory
-                    ? "bg-red-500/20 text-red-300 border border-red-500/30"
-                    : "bg-white/5 text-gray-400 border border-white/10 hover:border-white/20"
+                    ? "bg-primary/20 text-primary border border-ring/30"
+                    : "bg-muted text-muted-foreground border border-border hover:border-white/20"
                 )}
               >
                 Todos
@@ -415,8 +415,8 @@ export default function WorkflowsPage() {
                   className={cn(
                     "rounded-full px-3 py-1 text-xs transition",
                     templateCategory === cat
-                      ? "bg-red-500/20 text-red-300 border border-red-500/30"
-                      : "bg-white/5 text-gray-400 border border-white/10 hover:border-white/20"
+                      ? "bg-primary/20 text-primary border border-ring/30"
+                      : "bg-muted text-muted-foreground border border-border hover:border-white/20"
                   )}
                 >
                   {cat}
@@ -427,10 +427,10 @@ export default function WorkflowsPage() {
 
           {/* Template cards */}
           {templatesQuery.isLoading && (
-            <div className="text-sm text-gray-400">Carregando templates...</div>
+            <div className="text-sm text-muted-foreground">Carregando templates...</div>
           )}
           {!templatesQuery.isLoading && (templatesQuery.data?.templates || []).length === 0 && (
-            <div className="text-sm text-gray-400">Nenhum template encontrado.</div>
+            <div className="text-sm text-muted-foreground">Nenhum template encontrado.</div>
           )}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {(templatesQuery.data?.templates || []).map((tpl) => (
@@ -438,24 +438,24 @@ export default function WorkflowsPage() {
                 type="button"
                 key={tpl.id}
                 onClick={() => handleCreateFromTemplate(tpl.id)}
-                className="flex flex-col gap-2 rounded-xl border border-white/10 bg-black/40 p-4 text-left transition hover:border-red-500/40 hover:bg-black/60"
+                className="flex flex-col gap-2 rounded-xl border border-border bg-background p-4 text-left transition hover:border-ring/40 hover:bg-[var(--ds-bg-hover)]"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {tpl.category === "Atendimento" && <Headphones className="h-4 w-4 text-emerald-400" />}
                     {tpl.category === "Vendas" && <TrendingUp className="h-4 w-4 text-amber-400" />}
-                    {tpl.category === "Marketing" && <Megaphone className="h-4 w-4 text-red-400" />}
-                    <span className="text-sm font-semibold text-white">{tpl.name}</span>
+                    {tpl.category === "Marketing" && <Megaphone className="h-4 w-4 text-primary" />}
+                    <span className="text-sm font-semibold text-foreground">{tpl.name}</span>
                   </div>
-                  <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-gray-400">{tpl.category}</span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{tpl.category}</span>
                 </div>
                 {tpl.description && (
-                  <p className="text-xs text-gray-400 line-clamp-2">{tpl.description}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{tpl.description}</p>
                 )}
                 {tpl.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {tpl.tags.slice(0, 3).map((tag) => (
-                      <span key={tag} className="rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-gray-500">
+                      <span key={tag} className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
                         {tag}
                       </span>
                     ))}
@@ -467,31 +467,31 @@ export default function WorkflowsPage() {
         </div>
       )}
 
-      <div className="rounded-2xl border border-white/5 bg-zinc-950/60 p-4">
+      <div className="rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <WorkflowIcon className="h-4 w-4 text-red-400" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <WorkflowIcon className="h-4 w-4 text-primary" />
             {workflows.length} fluxos encontrados
           </div>
-          <div className="flex w-full max-w-sm items-center gap-2 rounded-xl border border-white/10 bg-black/40 px-3 py-2">
+          <div className="flex w-full max-w-sm items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar fluxo..."
-              className="h-7 border-0 bg-transparent text-sm text-white placeholder:text-gray-500 focus-visible:ring-0"
+              className="h-11 md:h-7 border-0 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
             />
           </div>
         </div>
 
         <div className="mt-6 space-y-3">
           {isLoading && (
-            <div className="rounded-xl border border-white/10 bg-black/40 p-6 text-sm text-gray-400">
+            <div className="rounded-xl border border-border bg-background p-6 text-sm text-muted-foreground">
               Carregando fluxos...
             </div>
           )}
 
           {!isLoading && workflows.length === 0 && (
-            <div className="rounded-xl border border-dashed border-white/10 bg-black/40 p-8 text-center text-gray-400">
+            <div className="rounded-xl border border-dashed border-border bg-background p-8 text-center text-muted-foreground">
               Nenhum fluxo criado ainda.
             </div>
           )}
@@ -501,55 +501,55 @@ export default function WorkflowsPage() {
               <button
                 key={workflow.id}
                 className={cn(
-                  "group flex w-full items-center justify-between rounded-xl border border-white/10 bg-black/40 px-4 py-4 text-left transition hover:border-red-500/40 hover:bg-black/60",
+                  "group flex w-full min-w-0 flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center rounded-xl border border-border bg-background px-4 py-4 text-left transition hover:border-ring/40 hover:bg-[var(--ds-bg-hover)]",
                   workflow.id === defaultWorkflowId &&
-                    "border-red-500/30 bg-red-500/5 shadow-[0_0_0_1px_rgba(16,185,129,0.15)]"
+                    "border-ring/30 bg-primary/5 ring-1 ring-ring/15"
                 )}
                 onClick={() =>
                   router.push(`/builder/${encodeURIComponent(workflow.id)}`)
                 }
                 type="button"
               >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5">
-                  <WorkflowIcon className="h-4 w-4 text-red-400" />
+                <div className="min-w-0 flex-1 space-y-1 break-words">
+                  <div className="flex min-w-0 flex-wrap items-center gap-3">
+                <div className="ds-icon-tile" data-size="sm" aria-hidden="true">
+                  <WorkflowIcon className="size-1/2" />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold text-white">
-                    <span className="inline-flex items-center gap-2">
+                  <div className="text-sm font-semibold text-foreground">
+                    <span className="inline-flex max-w-full items-center gap-2 break-words">
                       {workflow.name}
                       {workflow.id === defaultWorkflowId && (
-                        <Star className="h-3.5 w-3.5 text-red-300" />
+                        <Star className="h-3.5 w-3.5 text-primary" />
                       )}
                     </span>
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-muted-foreground">
                     Atualizado em {formatDate(workflow.updatedAt)}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-muted-foreground">
                     Gatilho: {getTriggerLabel(workflow)}
                   </div>
                   {workflow.id === defaultWorkflowId && (
-                    <div className="text-xs text-red-300/80">
+                    <div className="text-xs text-primary/80">
                       Fluxo padrão
                     </div>
                     )}
                     {workflow.lastPublishedVersion && (
-                      <div className="text-xs text-red-300/70">
+                      <div className="text-xs text-primary/70">
                         Última publicada: v{workflow.lastPublishedVersion}
                       </div>
                     )}
                   </div>
                 </div>
                   {workflow.description && (
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-muted-foreground">
                       {workflow.description}
                     </div>
                   )}
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="hidden sm:flex items-center gap-2 text-xs text-gray-500">
+                <div className="flex min-w-0 flex-wrap items-center gap-3">
+                  <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
                     <span>
                       Execuções:{" "}
                       {metricsQuery.data?.byWorkflow?.[workflow.id]?.runs ?? 0}
@@ -562,7 +562,7 @@ export default function WorkflowsPage() {
                   <StatusBadge status={workflow.status} />
                   {workflow.status !== "published" && (
                     <Button
-                      className="border-white/10 bg-zinc-950/40 hover:bg-white/5 text-gray-200"
+                      className="border-border bg-zinc-950/40 hover:bg-muted text-gray-200"
                       onClick={(event) => {
                         event.stopPropagation();
                         handlePublish(workflow.id);
@@ -577,7 +577,7 @@ export default function WorkflowsPage() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
-                        className="border-white/10 bg-zinc-950/40 hover:bg-white/5 text-gray-200"
+                        className="border-border bg-zinc-950/40 hover:bg-muted text-gray-200"
                         size="sm"
                         variant="outline"
                         onClick={(event) => event.stopPropagation()}
@@ -648,22 +648,22 @@ export default function WorkflowsPage() {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <ChevronRight className="h-4 w-4 text-gray-500 transition group-hover:text-white" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground transition group-hover:text-foreground" />
                 </div>
               </button>
             ))}
         </div>
 
         {selectedWorkflowId && (
-          <div className="mt-6 rounded-xl border border-white/10 bg-black/40 p-4">
+          <div className="mt-6 rounded-xl border border-border bg-background p-4">
             <div className="flex items-center justify-between">
-              <div className="text-sm font-semibold text-white">
+              <div className="text-sm font-semibold text-foreground">
                 Versões do fluxo
               </div>
               <Button
                 variant="ghost"
                 onClick={() => router.push("/workflows")}
-                className="text-xs text-gray-400 hover:text-white"
+                className="text-xs text-muted-foreground hover:text-foreground"
               >
                 Fechar
               </Button>
@@ -671,7 +671,7 @@ export default function WorkflowsPage() {
             {!versionsQuery.isLoading &&
               versionsQuery.data &&
               versionsQuery.data.length > 0 && (
-                <div className="mt-2 text-xs text-gray-500">
+                <div className="mt-2 text-xs text-muted-foreground">
                   Última publicada:{" "}
                   {versionsQuery.data.find((version) => version.status === "published")
                     ? `v${versionsQuery.data.find((version) => version.status === "published")?.version}`
@@ -680,22 +680,22 @@ export default function WorkflowsPage() {
               )}
             <div className="mt-3 space-y-2">
               {versionsQuery.isLoading && (
-                <div className="text-xs text-gray-400">Carregando versões...</div>
+                <div className="text-xs text-muted-foreground">Carregando versões...</div>
               )}
               {!versionsQuery.isLoading &&
                 (versionsQuery.data || []).map((version) => (
                   <div
-                    className="flex items-center justify-between rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-xs text-gray-300"
+                    className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2 text-xs text-[var(--ds-text-secondary)]"
                     key={version.id}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 flex-wrap items-center gap-3">
                       <span>v{version.version}</span>
-                      <span className="text-gray-500">{version.status}</span>
+                      <span className="text-muted-foreground">{version.status}</span>
                     </div>
                     <Button
                       size="sm"
                       variant="outline"
-                      className="border-white/10 bg-zinc-950/40 hover:bg-white/5 text-gray-200"
+                      className="border-border bg-zinc-950/40 hover:bg-muted text-gray-200"
                       disabled={
                         isRollingBack ||
                         rollingBackId === version.id ||
@@ -711,7 +711,7 @@ export default function WorkflowsPage() {
                 ))}
               {!versionsQuery.isLoading &&
                 (versionsQuery.data || []).length === 0 && (
-                  <div className="text-xs text-gray-400">
+                  <div className="text-xs text-muted-foreground">
                     Nenhuma versão encontrada.
                   </div>
                 )}

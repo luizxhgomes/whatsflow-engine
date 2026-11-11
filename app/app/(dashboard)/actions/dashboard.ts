@@ -2,6 +2,7 @@
 
 import { cache } from 'react'
 import { createClient } from '@/lib/supabase-server'
+import { loadDashboardOverview } from '@/lib/data/dashboard-overview'
 import type { DashboardStats, ChartDataPoint } from '@/services/dashboardService'
 import type { Campaign } from '@/types'
 
@@ -17,7 +18,8 @@ export const getDashboardData = cache(async (): Promise<{
   const supabase = await createClient()
 
   // Buscar stats agregados e campanhas recentes em PARALELO
-  const [statsResult, campaignsResult, allCampaignsResult] = await Promise.all([
+  const [overview, statsResult, campaignsResult, allCampaignsResult] = await Promise.all([
+    loadDashboardOverview(supabase),
     // Stats agregados
     supabase
       .from('campaigns')
@@ -37,6 +39,10 @@ export const getDashboardData = cache(async (): Promise<{
       .select('sent, delivered, read, failed, status, created_at, started_at, last_sent_at, total_recipients')
       .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
   ])
+
+  if ([statsResult, campaignsResult, allCampaignsResult].some(result => result.error)) {
+    throw new Error('Falha ao carregar as campanhas do dashboard')
+  }
 
   // Calcular stats agregados
   const campaigns = statsResult.data || []
@@ -70,7 +76,8 @@ export const getDashboardData = cache(async (): Promise<{
       deliveryRate: `${deliveryRate}%`,
       activeCampaigns: activeCampaigns.toString(),
       failedMessages: totalFailed.toString(),
-      chartData
+      chartData,
+      overview
     },
     recentCampaigns
   }

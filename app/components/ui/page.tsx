@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
  * Usa espaçamento consistente do Design System
  */
 export function Page({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('space-y-8', className)} {...props} />
+  return <div className={cn('min-w-0 space-y-[var(--ds-section-space)]', className)} {...props} />
 }
 
 /**
@@ -18,7 +18,7 @@ export function PageHeader({ className, ...props }: React.HTMLAttributes<HTMLDiv
   return (
     <div
       className={cn(
-        'flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between',
+        'flex min-w-0 flex-wrap items-end justify-between gap-x-5 gap-y-3 [&>*]:min-w-0',
         className,
       )}
       {...props}
@@ -46,7 +46,7 @@ export function PageDescription({ className, ...props }: React.HTMLAttributes<HT
  * Container para ações da página (botões, filtros)
  */
 export function PageActions({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('flex items-center gap-3', className)} {...props} />
+  return <div className={cn('flex min-w-0 flex-wrap items-center gap-2.5 sm:gap-3', className)} {...props} />
 }
 
 /**

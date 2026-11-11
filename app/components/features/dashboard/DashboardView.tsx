@@ -7,7 +7,7 @@ import { formatDateFull } from '@/lib/date-formatter';
 import { Container } from '@/components/ui/container';
 import { StatCard } from '@/components/ui/stat-card';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { Send, TrendingUp, AlertCircle, CheckCircle2, MoreHorizontal, ArrowUpRight } from 'lucide-react';
+import { Send, TrendingUp, AlertCircle, CheckCircle2, MoreHorizontal, ArrowUpRight, Users, FileText, MessageSquare } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from '@/components/ui/lazy-charts';
 import { Campaign, CampaignStatus } from '../../../types';
 import { DashboardStats } from '../../../services/dashboardService';
@@ -53,6 +53,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ stats, recentCampa
   const containerRef = React.useRef<HTMLDivElement>(null);
   const rangeSize = range === '7D' ? 7 : range === '15D' ? 15 : 30;
   const chartData = stats.chartData || [];
+  const overview = stats.overview;
+  const number = (value: number) => value.toLocaleString('pt-BR');
+  const historyDate = (value: string) => new Date(value).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 
   React.useEffect(() => {
     // Aguarda o browser calcular as dimensões do container antes de renderizar o chart
@@ -75,14 +78,67 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ stats, recentCampa
       <PageHeader>
         <div>
           <PageTitle>Dashboard</PageTitle>
-          <PageDescription>Visão geral da performance de mensagens</PageDescription>
+          <PageDescription>Visão operacional e histórico de mensagens</PageDescription>
         </div>
       </PageHeader>
 
-      {/* Stats Grid — 2-up mobile (baziotti pattern), 4-up desktop */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
+      <section aria-labelledby="operational-title" className="space-y-3">
+        <h2 id="operational-title" className="text-lg font-semibold">Visão operacional</h2>
+        {overview ? (
+          <>
+            <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <StatCard title="Contatos" value={number(overview.contacts)} icon={Users} layout="compact" />
+              <div className="space-y-2">
+                <StatCard title="Templates" value={number(overview.templates.total)} icon={FileText} layout="compact" />
+                <p className="text-xs text-[var(--ds-text-muted)]">Aprovados: {number(overview.templates.approved)} | Rascunhos: {number(overview.templates.drafts)}</p>
+              </div>
+              <div className="space-y-2">
+                <StatCard title="Campanhas" value={number(overview.campaigns.total)} icon={Send} layout="compact" />
+                <p className="text-xs text-[var(--ds-text-muted)]">Concluídas: {number(overview.campaigns.completed)} | Ativas: {number(overview.campaigns.active)}</p>
+              </div>
+              <div className="space-y-2">
+                <StatCard title="Mensagens do Inbox" value={number(overview.inbox.messages)} icon={MessageSquare} layout="compact" />
+                <p className="text-xs text-[var(--ds-text-muted)]">{number(overview.inbox.conversations)} conversas registradas</p>
+              </div>
+            </div>
+            <Container variant="glass" padding="md" className="space-y-3">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 className="text-sm font-semibold">Histórico disponível</h3>
+                <p className="text-xs text-[var(--ds-text-muted)]">
+                  {overview.inbox.firstMessageAt && overview.inbox.lastMessageAt
+                    ? `${historyDate(overview.inbox.firstMessageAt)} a ${historyDate(overview.inbox.lastMessageAt)} (UTC)`
+                    : 'Sem mensagens registradas'}
+                </p>
+              </div>
+              <dl className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {[
+                  ['Saída', overview.inbox.outbound], ['Entrada', overview.inbox.inbound],
+                  ['Entregues', overview.inbox.delivered], ['Lidas', overview.inbox.read],
+                  ['Pendentes', overview.inbox.pending], ['Falhas', overview.inbox.failed],
+                ].map(([label, value]) => (
+                  <div key={label}>
+                    <dt className="text-xs text-[var(--ds-text-muted)]">{label}</dt>
+                    <dd className="text-lg font-semibold">{number(value as number)}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="text-xs text-[var(--ds-text-muted)]">
+                O histórico do Inbox não representa disparos de campanhas. Templates e campanhas mostram apenas registros deste app.
+              </p>
+            </Container>
+          </>
+        ) : (
+          <Container variant="glass" padding="md">
+            <p role="status" className="text-sm text-[var(--ds-text-muted)]">{isLoading ? 'Carregando resumo operacional...' : 'Resumo operacional indisponível.'}</p>
+          </Container>
+        )}
+      </section>
+
+      <h2 className="text-lg font-semibold">Indicadores de campanhas</h2>
+
+      <div className="grid grid-cols-1 min-[360px]:grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-4">
         <StatCard
-          title="Total Enviado"
+          title="Enviadas por campanhas"
           value={stats.sent24h}
           icon={Send}
           color="blue"
@@ -117,10 +173,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ stats, recentCampa
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
         {/* Chart Section */}
-        <Container variant="glass" padding="md" className="lg:col-span-2 lg:!p-6">
-          <div className="flex items-center justify-between mb-4 lg:mb-8">
-            <h3 className="text-sm lg:text-heading-4 font-semibold text-[var(--ds-text-primary)]" id="chart-title">Volume de Mensagens</h3>
-            <div className="flex gap-2" role="group" aria-label="Período do gráfico">
+        <Container variant="glass" padding="md" className="min-w-0 lg:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4 lg:mb-6">
+            <h3 className="text-sm lg:text-heading-4 font-semibold text-[var(--ds-text-primary)]" id="chart-title">Volume de campanhas</h3>
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Período do gráfico">
               {[
                 { key: '7D', label: 'Últimos 7 dias' },
                 { key: '15D', label: 'Últimos 15 dias' },
@@ -131,7 +187,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ stats, recentCampa
                   aria-label={t.label}
                   aria-pressed={t.key === range}
                   onClick={() => setRange(t.key as '7D' | '15D' | '30D')}
-                  className={`text-xs px-3 py-1 rounded-lg transition-colors ${t.key === range ? 'bg-[var(--ds-bg-hover)] text-[var(--ds-text-primary)]' : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text-secondary)]'}`}
+                  className={`min-h-11 sm:min-h-8 cursor-pointer text-xs font-semibold px-3 py-1 rounded-lg transition-colors ${t.key === range ? 'bg-accent text-accent-foreground' : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text-secondary)]'}`}
                 >
                   {t.key}
                 </button>
@@ -143,14 +199,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ stats, recentCampa
             aria-labelledby="chart-title"
             aria-describedby="chart-description"
           >
-            <div ref={containerRef} className="h-48 lg:h-72 w-full">
+            <div ref={containerRef} className="h-48 w-full min-w-0 lg:h-64">
               {isMounted && chartData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <AreaChart data={chartData.slice(-rangeSize)} aria-hidden="true">
                   <defs>
                     <linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#dc2626" stopOpacity={0.22}/>
-                      <stop offset="95%" stopColor="#dc2626" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.22}/>
+                      <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0}/>
                     </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
@@ -168,14 +224,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ stats, recentCampa
                 />
                 <Tooltip
                   contentStyle={{backgroundColor: '#101113', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', color: '#fff'}}
-                  itemStyle={{color: '#dc2626'}}
+                  itemStyle={{color: 'var(--chart-1)'}}
                   labelStyle={{color: '#a1a1aa'}}
                   formatter={(value) => [value, 'Enviadas']}
                 />
                 <Area 
                   type="monotone" 
                   dataKey="sent" 
-                  stroke="#dc2626" 
+                  stroke="var(--chart-1)"
                   strokeWidth={2}
                   fillOpacity={1} 
                   fill="url(#colorSent)" 
@@ -207,7 +263,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ stats, recentCampa
           <div className="flex-1 overflow-auto bg-[var(--ds-bg-elevated)]">
             {recentCampaigns.length === 0 ? (
               <div className="p-8 text-center text-[var(--ds-text-muted)]">
-                Nenhuma campanha ainda.
+                Nenhuma campanha registrada no app.
               </div>
             ) : (
               <table className="w-full text-left text-sm">

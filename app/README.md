@@ -4,17 +4,19 @@
 
 ---
 
+O ambiente publicado usa Neon, PostgREST, Upstash e Vercel Blob. Para entrar, explorar o painel e configurar a Meta quando quiser, siga o [guia de primeiro acesso](../docs/setup/README.md). As etapas do assistente abaixo documentam a opção de provisionar uma instância com Supabase.
+
 ## Índice
 
-- [Sobre](#-sobre)
-- [O que você pode fazer](#-o-que-você-pode-fazer)
-- [Instalação Rápida](#-instalação-rápida)
-- [Primeiros Passos](#-primeiros-passos)
-- [Como Usar](#-como-usar)
-- [Configurações](#%EF%B8%8F-configurações)
-- [Problemas Comuns](#-problemas-comuns)
+- [Sobre](#sobre)
+- [O que você pode fazer](#o-que-você-pode-fazer)
+- [Instalação Rápida](#instalação-rápida)
+- [Primeiros Passos](#primeiros-passos)
+- [Como Usar](#como-usar)
+- [Configurações](#configurações)
+- [Problemas Comuns](#problemas-comuns)
 - [FAQ](#faq)
-- [Suporte](#-suporte)
+- [Suporte](#suporte)
 
 ---
 

@@ -3,7 +3,7 @@
  * Provides conversation details and message operations with real-time updates
  */
 
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import {
   inboxService,
@@ -13,12 +13,6 @@ import {
 import type { InboxConversation, InboxMessage, ConversationMode } from '@/types'
 import { CACHE, REALTIME } from '@/lib/constants'
 import { useRealtimeQuery } from './useRealtimeQuery'
-import {
-  createRealtimeChannel,
-  subscribeToTable,
-  activateChannel,
-  removeChannel,
-} from '@/lib/supabase-realtime'
 
 const CONVERSATION_KEY = 'inbox-conversation'
 const MESSAGES_KEY = 'inbox-messages'
@@ -165,7 +159,6 @@ export function useConversation(conversationId: string | null) {
 export function useMessages(conversationId: string | null) {
   const queryClient = useQueryClient()
   const [isSending, setIsSending] = useState(false)
-  const channelRef = useRef<ReturnType<typeof createRealtimeChannel> | null>(null)
 
   // Messages query with infinite scroll
   const messagesQuery = useInfiniteQuery({
@@ -186,84 +179,10 @@ export function useMessages(conversationId: string | null) {
     },
     initialPageParam: undefined as string | undefined,
     staleTime: CACHE.inbox,
-    refetchOnWindowFocus: false,
+    refetchInterval: 3_000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
   })
-
-  // Realtime subscription for new messages
-  useEffect(() => {
-    if (!conversationId) return
-
-    // Create channel for this conversation's messages
-    const channelName = `inbox-messages-${conversationId}-${Date.now()}`
-    const channel = createRealtimeChannel(channelName)
-
-    if (!channel) {
-      console.warn('[useMessages] Supabase not configured, skipping realtime')
-      return
-    }
-
-    channelRef.current = channel
-
-    // Subscribe to INSERT events (new messages)
-    subscribeToTable(
-      channel,
-      'inbox_messages',
-      'INSERT',
-      (payload) => {
-        // Only refetch if the message is for this conversation
-        const newRecord = payload.new as { conversation_id?: string }
-        if (newRecord?.conversation_id === conversationId) {
-          // Invalidate to trigger refetch
-          queryClient.invalidateQueries({
-            queryKey: getMessagesQueryKey(conversationId),
-          })
-        }
-      },
-      `conversation_id=eq.${conversationId}`
-    )
-
-    // Also subscribe to UPDATE events (delivery status changes)
-    subscribeToTable(
-      channel,
-      'inbox_messages',
-      'UPDATE',
-      (payload) => {
-        const updatedRecord = payload.new as unknown as InboxMessage
-        if (updatedRecord?.conversation_id === conversationId) {
-          // Update the specific message in cache (optimistic)
-          queryClient.setQueryData(
-            getMessagesQueryKey(conversationId),
-            (old: typeof messagesQuery.data) => {
-              if (!old) return old
-              return {
-                ...old,
-                pages: old.pages.map((page) => ({
-                  ...page,
-                  messages: page.messages.map((m) =>
-                    m.id === updatedRecord.id ? { ...m, ...updatedRecord } : m
-                  ),
-                })),
-              }
-            }
-          )
-        }
-      },
-      `conversation_id=eq.${conversationId}`
-    )
-
-    // Activate the channel
-    activateChannel(channel).catch((err) => {
-      console.error('[useMessages] Failed to subscribe to inbox_messages:', err)
-    })
-
-    // Cleanup on unmount or conversationId change
-    return () => {
-      if (channelRef.current) {
-        removeChannel(channelRef.current)
-        channelRef.current = null
-      }
-    }
-  }, [conversationId, queryClient])
 
   // Flatten messages from all pages
   // IMPORTANT: Reverse pages order because newer pages are added at the end by React Query,

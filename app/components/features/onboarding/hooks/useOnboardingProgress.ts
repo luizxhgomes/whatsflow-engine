@@ -40,6 +40,14 @@ export interface OnboardingProgress {
 
 const STORAGE_KEY = 'whatsflow_onboarding_progress_v2'; // v2 para ignorar localStorage antigo
 
+export function clearStoredOnboardingProgress() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Browser storage may be unavailable even when authentication succeeds.
+  }
+}
+
 const DEFAULT_PROGRESS: OnboardingProgress = {
   currentStep: 'welcome',
   path: null,
@@ -218,7 +226,7 @@ export function useOnboardingProgress() {
 
   const resetOnboarding = useCallback(() => {
     setProgress(DEFAULT_PROGRESS);
-    localStorage.removeItem(STORAGE_KEY);
+    clearStoredOnboardingProgress();
   }, []);
 
   // ============================================================================

@@ -5,7 +5,7 @@
  * Follows constitution: API-first, Type Safety, Simplicity.
  */
 
-import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js'
+import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 import { getSupabaseBrowser } from './supabase'
 import type { RealtimeTable, RealtimeEventType, RealtimePayload, ChannelStatus } from '@/types'
 
@@ -41,10 +41,6 @@ let lastConnectionAttempt = 0
 export function createRealtimeChannel(channelName: string): RealtimeChannel | null {
     const supabase = getSupabaseBrowser()
     if (!supabase) {
-        if (!connectionFailureLogged) {
-            console.warn('[Realtime] Supabase not configured - realtime features disabled')
-            connectionFailureLogged = true
-        }
         return null
     }
     return supabase.channel(channelName)

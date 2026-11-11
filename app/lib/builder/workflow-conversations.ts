@@ -1,7 +1,7 @@
 import "server-only";
 
 import { nanoid } from "nanoid";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { DatabaseClient } from "@/lib/supabase";
 
 export type ConversationState = {
   id: string;
@@ -20,7 +20,7 @@ export type ConversationState = {
 };
 
 export async function createConversation(params: {
-  supabase: SupabaseClient;
+  supabase: DatabaseClient;
   workflowId: string;
   phone: string;
   resumeNodeId?: string | null;
@@ -92,7 +92,7 @@ export async function createConversation(params: {
 }
 
 export async function getPendingConversation(
-  supabase: SupabaseClient,
+  supabase: DatabaseClient,
   phone: string
 ): Promise<ConversationState | null> {
   const { data } = await supabase
@@ -109,7 +109,7 @@ export async function getPendingConversation(
 }
 
 export async function completeConversation(
-  supabase: SupabaseClient,
+  supabase: DatabaseClient,
   conversationId: string,
   variables: Record<string, unknown>
 ): Promise<void> {

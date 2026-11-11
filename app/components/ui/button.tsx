@@ -10,10 +10,10 @@ import { cn } from "@/lib/utils";
  * Mudanças do DS:
  * - Transição usando --ds-transition-fast (150ms ease-out)
  * - Sombras compostas do DS ao invés de shadow-black/5
- * - Glow emerald no hover para variante default (primary)
+ * - Realce de marca nas ações primárias
  */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "inline-flex cursor-pointer items-center justify-center whitespace-nowrap rounded-lg text-sm font-semibold active:translate-y-px outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -51,11 +51,11 @@ const buttonVariants = cva(
           "[transition:var(--ds-transition-fast)]",
         ].join(" "),
         link: "text-primary underline-offset-4 hover:underline",
-        // Nova variante brand com glow emerald
+        // Ação principal com elevação discreta
         brand: [
-          "bg-red-600 text-white border border-red-600",
+          "bg-primary text-primary-foreground",
           "[box-shadow:var(--ds-shadow-button-primary)]",
-          "hover:bg-red-500 hover:border-red-500 hover:[box-shadow:var(--ds-shadow-button-primary-hover)]",
+          "hover:bg-primary/90 hover:[box-shadow:var(--ds-shadow-button-primary-hover)]",
           "[transition:var(--ds-transition-fast)]",
         ].join(" "),
       },
@@ -85,7 +85,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
     return (
-      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+      <Comp
+        data-slot="button"
+        data-icon-button={size?.startsWith("icon") ? "" : undefined}
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
     );
   },
 );

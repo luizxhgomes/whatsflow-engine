@@ -1,5 +1,4 @@
 import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
 import { LucideIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -43,11 +42,11 @@ import { cn } from "@/lib/utils"
  */
 
 const indicatorColors = {
-  brand: "bg-red-500",
-  warning: "bg-amber-500",
-  info: "bg-orange-500",
-  error: "bg-red-500",
-  neutral: "bg-zinc-500",
+  brand: "bg-[var(--ds-text-brand)]",
+  warning: "bg-[var(--ds-status-warning)]",
+  info: "bg-[var(--ds-status-info)]",
+  error: "bg-[var(--ds-status-error-text)]",
+  neutral: "bg-[var(--ds-border-strong)]",
 } as const
 
 type IndicatorColor = keyof typeof indicatorColors
@@ -83,7 +82,7 @@ function SectionHeader({
   return (
     <div
       data-slot="section-header"
-      className={cn("flex items-start gap-3", className)}
+      className={cn("flex min-w-0 flex-wrap items-start gap-3", className)}
       {...props}
     >
       {/* Indicator bar */}
@@ -99,34 +98,25 @@ function SectionHeader({
 
       {/* Icon */}
       {Icon && (
-        <div
-          className={cn(
-            "flex-shrink-0 mt-0.5",
-            color === "brand" && "text-red-400",
-            color === "warning" && "text-amber-400",
-            color === "info" && "text-orange-400",
-            color === "error" && "text-red-400",
-            color === "neutral" && "text-zinc-400"
-          )}
-        >
-          <Icon size={20} />
+        <div className="ds-icon-tile" data-size="sm" data-tone={color} aria-hidden="true">
+          <Icon className="size-1/2" />
         </div>
       )}
 
       {/* Content */}
-      <div className="flex-1 min-w-0">
+      <div className="min-w-[min(12rem,100%)] flex-1">
         <div className="flex items-center gap-2 flex-wrap">
-          <h3 className="text-heading-4 text-white">{title}</h3>
+          <h3 className="text-heading-4 text-[var(--ds-text-primary)]">{title}</h3>
           {badge}
         </div>
         {description && (
-          <p className="text-body-small text-zinc-400 mt-1">{description}</p>
+          <p className="text-body-small text-[var(--ds-text-muted)] mt-1">{description}</p>
         )}
       </div>
 
       {/* Actions */}
       {actions && (
-        <div className="flex-shrink-0 flex items-center gap-2">{actions}</div>
+        <div className="ml-auto flex flex-wrap items-center gap-2">{actions}</div>
       )}
     </div>
   )

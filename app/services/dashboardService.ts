@@ -1,3 +1,4 @@
+import type { DashboardOverview } from '@/lib/data/dashboard-overview';
 import { Campaign } from '../types';
 import { campaignService } from './campaignService';
 
@@ -11,6 +12,7 @@ export interface ChartDataPoint {
 }
 
 export interface DashboardStats {
+  overview?: DashboardOverview;
   sent24h: string;
   deliveryRate: string;
   activeCampaigns: string;
@@ -20,6 +22,7 @@ export interface DashboardStats {
 
 // API response from /api/dashboard/stats
 interface StatsAPIResponse {
+  overview?: DashboardOverview;
   totalSent: number;
   totalDelivered: number;
   totalRead: number;
@@ -47,9 +50,8 @@ export const dashboardService = {
     ]);
     
     // Parse das respostas
-    const stats: StatsAPIResponse = statsResponse.ok 
-      ? await statsResponse.json() 
-      : { totalSent: 0, totalDelivered: 0, totalRead: 0, totalFailed: 0, activeCampaigns: 0, deliveryRate: 0 };
+    if (!statsResponse.ok) throw new Error(`${statsResponse.status}: Falha ao buscar estatísticas do dashboard`);
+    const stats: StatsAPIResponse = await statsResponse.json();
     
     const campaignsPayload =
       campaignsResult as unknown as Campaign[] | { data?: Campaign[] };
@@ -104,7 +106,8 @@ export const dashboardService = {
       deliveryRate: `${stats.deliveryRate}%`,
       activeCampaigns: stats.activeCampaigns.toString(),
       failedMessages: stats.totalFailed.toString(),
-      chartData
+      chartData,
+      overview: stats.overview
     };
   },
 
@@ -113,11 +116,7 @@ export const dashboardService = {
    * Sem cache para manter o dashboard “ao vivo”.
    */
   getRecentCampaigns: async (): Promise<Campaign[]> => {
-    try {
-      const result = await campaignService.list({ limit: 5, offset: 0, search: '', status: 'All' });
-      return result.data || [];
-    } catch {
-      return [];
-    }
+    const result = await campaignService.list({ limit: 5, offset: 0, search: '', status: 'All' });
+    return result.data;
   }
 };

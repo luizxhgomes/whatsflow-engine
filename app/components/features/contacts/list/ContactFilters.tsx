@@ -47,12 +47,12 @@ export const ContactFilters: React.FC<ContactFiltersProps> = ({
   return (
     <div className="p-5 border-b border-[var(--ds-border-subtle)] flex flex-col lg:flex-row gap-4">
       {/* Search */}
-      <div className="flex items-center gap-3 flex-1 bg-[var(--ds-bg-elevated)] border border-[var(--ds-border-default)] rounded-xl px-4 py-2.5 max-w-md focus-within:border-primary-500/50 focus-within:ring-1 focus-within:ring-primary-500/50 transition-all">
-        <Search size={18} className="text-[var(--ds-text-muted)]" aria-hidden="true" />
+      <div className="flex min-w-0 flex-1 items-center gap-3 bg-[var(--ds-bg-elevated)] border border-[var(--ds-border-default)] rounded-xl px-4 py-2.5 max-w-md focus-within:border-primary-500/50 focus-within:ring-1 focus-within:ring-primary-500/50 transition-all">
+        <Search size={18} className="shrink-0 text-[var(--ds-text-muted)]" aria-hidden="true" />
         <input
           type="text"
           placeholder="Buscar por nome ou telefone..."
-          className="bg-transparent border-none outline-none text-sm w-full text-[var(--ds-text-primary)] placeholder-[var(--ds-text-muted)]"
+          className="bg-transparent border-none outline-none text-sm min-w-0 w-full text-[var(--ds-text-primary)] placeholder-[var(--ds-text-muted)]"
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
           aria-label="Buscar contatos por nome ou telefone"
@@ -60,7 +60,7 @@ export const ContactFilters: React.FC<ContactFiltersProps> = ({
       </div>
 
       {/* Filter Toggles */}
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 flex-wrap items-center gap-3">
         <button
           onClick={onToggleFilters}
           className={`p-2.5 rounded-xl border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-500 focus-visible:outline-offset-2 ${showFilters || statusFilter !== 'ALL' || tagFilter !== 'ALL'
@@ -77,7 +77,7 @@ export const ContactFilters: React.FC<ContactFiltersProps> = ({
         <select
           value={statusFilter}
           onChange={(e) => onStatusFilterChange(e.target.value as ContactStatus | 'ALL' | 'SUPPRESSED')}
-          className="px-4 py-2.5 text-sm font-medium bg-[var(--ds-bg-elevated)] text-[var(--ds-text-primary)] hover:text-[var(--ds-text-primary)] rounded-xl border border-[var(--ds-border-default)] transition-colors outline-none cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-500 focus-visible:outline-offset-2"
+          className="min-w-0 max-w-full px-4 py-2.5 text-sm font-medium bg-[var(--ds-bg-elevated)] text-[var(--ds-text-primary)] hover:text-[var(--ds-text-primary)] rounded-xl border border-[var(--ds-border-default)] transition-colors outline-none cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-500 focus-visible:outline-offset-2"
           aria-label="Filtrar contatos por status"
         >
           {statusOptions.map(opt => (
@@ -89,7 +89,7 @@ export const ContactFilters: React.FC<ContactFiltersProps> = ({
         <select
           value={tagFilter}
           onChange={(e) => onTagFilterChange(e.target.value)}
-          className="px-4 py-2.5 text-sm font-medium bg-[var(--ds-bg-elevated)] text-[var(--ds-text-primary)] hover:text-[var(--ds-text-primary)] rounded-xl border border-[var(--ds-border-default)] transition-colors outline-none cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-500 focus-visible:outline-offset-2"
+          className="min-w-0 max-w-full px-4 py-2.5 text-sm font-medium bg-[var(--ds-bg-elevated)] text-[var(--ds-text-primary)] hover:text-[var(--ds-text-primary)] rounded-xl border border-[var(--ds-border-default)] transition-colors outline-none cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-500 focus-visible:outline-offset-2"
           aria-label="Filtrar contatos por tag"
         >
           <option value="ALL">Todas Tags</option>
@@ -117,7 +117,7 @@ export const ContactResultsInfo: React.FC<ContactResultsInfoProps> = ({
   onClearFilters
 }) => {
   return (
-    <div className="px-5 py-3 bg-[var(--ds-bg-hover)] border-b border-[var(--ds-border-subtle)] flex items-center justify-between text-sm">
+    <div className="px-5 py-3 bg-[var(--ds-bg-hover)] border-b border-[var(--ds-border-subtle)] flex flex-wrap items-center justify-between gap-2 text-sm">
       <span className="text-[var(--ds-text-muted)]" aria-live="polite">
         Mostrando <span className="text-[var(--ds-text-primary)] font-medium">{displayedCount}</span> de{' '}
         <span className="text-[var(--ds-text-primary)] font-medium">{totalFiltered}</span> contatos

@@ -1,6 +1,8 @@
 import crypto from 'crypto'
 import { NextResponse } from 'next/server'
 import { settingsDb } from '@/lib/supabase-db'
+import { requireSessionOrApiKey } from '@/lib/request-auth'
+import { resolveMetaAppSecret } from '@/lib/webhook-signature'
 
 const ENDPOINT_URL_SETTING = 'whatsapp_flow_endpoint_url'
 const PUBLIC_KEY_SETTING = 'whatsapp_flow_public_key'
@@ -18,7 +20,13 @@ function buildEndpointUrl(): string | null {
   return null
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const denied = await requireSessionOrApiKey(request)
+  if (denied) return denied
+  const appSecret = await resolveMetaAppSecret()
+  if (!appSecret) {
+    return NextResponse.json({ ok: false, error: 'Meta App Secret não configurado' }, { status: 503 })
+  }
   const envEndpointUrl = buildEndpointUrl()
   const storedEndpointUrl = await settingsDb.get(ENDPOINT_URL_SETTING)
   const endpointUrl = envEndpointUrl || storedEndpointUrl || null
@@ -54,14 +62,16 @@ export async function GET() {
   // #region agent log
   // #endregion agent log
 
+  const body = JSON.stringify({
+    encrypted_flow_data: encryptedFlowData,
+    encrypted_aes_key: encryptedAesKey,
+    initial_vector: initialVector,
+  })
+  const signature = `sha256=${crypto.createHmac('sha256', appSecret).update(body).digest('hex')}`
   const res = await fetch(endpointUrl, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      encrypted_flow_data: encryptedFlowData,
-      encrypted_aes_key: encryptedAesKey,
-      initial_vector: initialVector,
-    }),
+    headers: { 'Content-Type': 'application/json', 'X-Hub-Signature-256': signature },
+    body,
   })
 
   const text = await res.text()
@@ -86,7 +96,7 @@ export async function GET() {
   // #endregion agent log
 
   return NextResponse.json({
-    ok: res.ok,
+    ok: res.ok && decryptedOk,
     status: res.status,
     bodyLength: text.length,
     endpointUrl,

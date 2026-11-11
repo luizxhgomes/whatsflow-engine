@@ -1,7 +1,17 @@
-# Topologia do Sistema
+# Topologia do sistema
 
 Documento único de referência da estruturação organizacional do WhatsFlow Engine:
 topologia física (repositório), lógica (camadas), de execução (disparo) e de dados (schema).
+
+Na revisão `ec7fab5`, publicada em 10/11/2026, o app roda na Vercel
+com Next.js 16 e Node.js 22. O banco é Neon PostgreSQL em São Paulo, acessado
+pelo servidor através de PostgREST na VPS com role limitada. Upstash QStash e
+Redis atendem filas e cache. O Vercel Blob privado armazena mídia. A conexão com
+a API oficial da Meta é opcional para explorar o painel e necessária para enviar
+e receber mensagens pelo WhatsApp.
+
+Os nomes `supabase.ts` e `supabase/migrations/` permanecem por compatibilidade
+com a base original.
 
 ---
 
@@ -10,12 +20,12 @@ topologia física (repositório), lógica (camadas), de execução (disparo) e d
 ```
 whatsflow-engine/
 ├── README.md                 # visão geral, lema e quickstart
-├── LICENSE · SECURITY.md · CONTRIBUTING.md · CODE_OF_CONDUCT.md · CHANGELOG.md · AUTHORS
+├── LICENSE | SECURITY.md | CONTRIBUTING.md | CODE_OF_CONDUCT.md | CHANGELOG.md | AUTHORS
 │
 ├── app/                      # ★ o sistema (Next.js 16, App Router)
-│   ├── app/                  #   páginas (34) + rotas de API (217), camada de entrada
+│   ├── app/                  #   páginas + rotas de API, camada de entrada
 │   │   └── api/              #   webhook Meta, campanhas, installer, diagnostics, health
-│   ├── components/           #   apresentação (444 componentes React)
+│   ├── components/           #   apresentação em componentes React
 │   ├── hooks/                #   estado e orquestração de dados (TanStack Query)
 │   ├── services/             #   API client, ponte tipada entre hooks e rotas
 │   ├── lib/                  #   regra de negócio e integrações
@@ -23,17 +33,17 @@ whatsflow-engine/
 │   │   ├── ai/               #     AI SDK v6 multi-provider + memória
 │   │   ├── builder/          #     motor do workflow builder
 │   │   ├── business/         #     regras de campanha, contato, settings
-│   │   └── installer/        #     provisionamento automático Supabase + Vercel
-│   ├── supabase/migrations/  #   topologia de dados (10 migrations, 35+ tabelas)
-│   ├── infra/                #   Dockerfile, DEPLOY-GUIDE, setup-vps.sh
-│   ├── types/ · utils/       #   contratos e utilitários compartilhados
+│   │   └── installer/        #     installer legado Supabase + Vercel
+│   ├── supabase/migrations/  #   histórico SQL, adaptado para Neon pelo runner
+│   ├── infra/                #   migrate-neon.mjs, postgrest/, Docker/VPS legado
+│   ├── types/ | utils/       #   contratos e utilitários compartilhados
 │   ├── proxy.ts              #   middleware: auth por rota + CORS
-│   └── *.test.ts(x)          #   125 arquivos de teste colocados junto do código
+│   └── *.test.ts(x)          #   testes colocados junto do código
 │
 └── docs/
     ├── architecture/         # ADRs 001-004 + este documento
-    ├── setup/                # replicação: Meta WABA, Supabase, Upstash, deploy
-    ├── prd/ · epics/ · stories/  # metodologia story-driven (registro do método)
+    ├── setup/                # primeiro acesso e provisionamento de outra instância
+    ├── prd/ | epics/ | stories/  # metodologia story-driven (registro do método)
     └── guides/               # deploy checklist, migrations, testes de flows
 ```
 
@@ -42,7 +52,9 @@ Nenhum arquivo de feature vive na raiz; testes vivem ao lado do código que test
 
 ## 2. Topologia lógica, as camadas
 
-Toda feature atravessa as mesmas quatro camadas, sem atalhos:
+O fluxo principal de leitura e interação do cliente segue as camadas abaixo.
+Server Components e Server Actions também usam loaders e adapters autenticados
+no servidor, sem expor o acesso administrativo ao navegador:
 
 ```mermaid
 %%{init: {'theme':'base','themeVariables':{
@@ -55,7 +67,9 @@ flowchart TD
     H --> S["Service (services/)"]
     S --> R["API Route (app/api/)"]
     R --> L["lib/, regra de negócio"]
-    L --> DB[("Supabase")]
+    L --> REST["PostgREST na VPS: acesso limitado"]
+    REST --> DB[("Neon PostgreSQL, São Paulo")]
+    L --> MEDIA["Vercel Blob privado: mídia assinada"]
     L --> META["Meta Cloud API"]
     L --> Q["QStash / Redis"]
 ```
@@ -65,11 +79,11 @@ flowchart TD
 | Page | `app/app/` | composição de UI, rota | conter regra de negócio |
 | Hook | `app/hooks/` | estado, cache, orquestração | chamar `fetch` direto |
 | Service | `app/services/` | client HTTP tipado | conhecer UI |
-| API Route | `app/app/api/` | validação, auth, integração | ser chamada por outra rota |
+| API Route | `app/app/api/` | validação, auth, integração | confiar em chamada interna sem autenticação |
 | Lib | `app/lib/` | regra de negócio pura + adapters | importar de camadas acima |
 
 Decisões que sustentam o desenho: [ADR-001 fontes de verdade](ADR-001-fontes-de-verdade.md) ·
-[ADR-002 error handling](ADR-002-error-handling.md) · [ADR-003 auth em camadas](ADR-003-auth-layering.md) ·
+[ADR-002 error handling](ADR-002-error-handling.md) | [ADR-003 auth em camadas](ADR-003-auth-layering.md) ·
 [ADR-004 dedup de webhook](ADR-004-webhook-dedup.md).
 
 ## 3. Topologia de execução, o disparo em massa
@@ -87,9 +101,9 @@ flowchart LR
     C --> D[Meta Cloud API]
     D --> E[WhatsApp do contato]
     D --> F["Webhook de status<br/>assinado HMAC"]
-    F --> R[("Redis: memória quente<br/>dedup · última mensagem · cache")]
-    R --> G[(Supabase)]
-    G --> H["Métricas por mensagem<br/>enviada · entregue · lida · falhou"]
+    F --> R[("Redis: memória quente<br/>dedup | última mensagem | cache")]
+    R --> G[(Neon PostgreSQL)]
+    G --> H["Métricas por mensagem<br/>enviada | entregue | lida | falhou"]
     E -.->|resposta do contato| W
     H --> C
 ```
@@ -99,13 +113,16 @@ reage ao rating de qualidade do número reportado pela Meta (`WHATSAPP_ADAPTIVE_
 
 Camadas de estado da execução: o Redis é a memória quente (dedup de eventos de webhook
 com TTL, última mensagem por conversa em `ai:lastmsg:*` para o debounce da IA, cache de
-settings); o Supabase é a fonte da verdade durável. Os Flows constroem jornadas
+settings); o Neon PostgreSQL é a fonte da verdade durável. Os Flows constroem jornadas
 automatizadas que reagem ao inbound do contato e reentram na fila, com estado em
 `workflow_conversations`.
 
 ## 4. Topologia de dados, domínios do schema
 
-35+ tabelas em 10 migrations, organizadas em 7 domínios:
+O histórico SQL permanece em `app/supabase/migrations/`. O runner
+[`migrate-neon.mjs`](../../app/infra/migrate-neon.mjs) adapta as publicações
+legadas de Supabase Realtime e registra as migrations aplicadas. Na operação
+Neon, o frontend usa polling autenticado. Os domínios principais são:
 
 ```mermaid
 %%{init: {'theme':'base','themeVariables':{
@@ -143,29 +160,39 @@ erDiagram
 `phone_suppressions` (opt-out) e `webhook_events` (dedup por assinatura) são as tabelas
 que materializam o disparo responsável descrito no README.
 
-## 5. Topologia visual, design system condicional (paleta WhatsApp)
+## 5. Topologia visual
 
-A identidade usa **apenas as cores** da marca WhatsApp, nunca a logo. Fonte da
-verdade: `app/lib/design-system/tokens/colors.ts` (escala `whatsapp`) e as
-variáveis condicionais de tema em `app/app/globals.css`.
+A interface usa a logo oficial do WhatsFlow em `app/public/icons/icon-512.png`.
+A fonte dos tokens consumidos pelo app é
+[`app/app/globals.css`](../../app/app/globals.css). Escalas legadas em
+`app/lib/design-system/tokens/` continuam como referência para componentes
+anteriores.
 
-| Token | Hex | Papel |
+| Token | Cor | Papel |
 |---|---|---|
-| `whatsapp.400` | `#25D366` | Brand primary (dark mode primary, rings, mapa de disparos) |
-| `whatsapp.500` | `#00A884` | Accent moderno (hover, focus, unread) |
-| `whatsapp.600` | `#128C7E` | Teal clássico (light mode primary, AA sobre branco) |
-| `whatsapp.800` | `#075E54` | Teal escuro (subtle, texto sobre accent light) |
-| `whatsapp.100` | `#D9FDD3` | Balão enviado / accent light |
-| `whatsapp.950` | `#0B141A` | Fundo dark do chat e das artes |
+| `--ds-brand-primary` | `#156f58` | Verde principal |
+| `--ds-brand-luminous` | `#8ce4a6` | Mint e realces no tema escuro |
+| `--ds-brand-ink` | `#101e1a` | Tom escuro da marca |
+| `--ds-brand-warm` | `#d06965` | Reflexo coral discreto em ícones e brilho |
 
-Condicionais de tema: light usa `--primary:#128C7E` (contraste AA com texto branco);
-dark usa `--primary:#25D366` com foreground `#0B141A`. Os balões (`--accent`)
-alternam `#D9FDD3`/`#005C4B`. A arte oficial do repo (`docs/assets/social-preview.svg`)
-segue esta paleta com a estrutura de **mapa de disparos** (hub → nós com check de entrega).
+Os temas controlam superfícies, texto e estados. Espaçamentos fluidos usam
+`--ds-page-gutter`, `--ds-section-space` e `--ds-card-padding`. Os ícones
+compartilham `.ds-icon-tile`. O login carrega Three.js sob demanda e mantém
+composição estática quando há preferência por movimento reduzido ou falha de
+WebGL. A validação visual inclui o CSS entregue pelo domínio público.
+[Checklist de deploy](../guides/deploy-checklist.md)
 
 ## 6. Topologia de replicação
 
-O sistema é single-tenant por desenho: **uma instância = um número = um negócio.**
-Replicar é provisionar a topologia inteira de novo (Supabase + Meta + Upstash + Vercel),
-sem multi-tenancy compartilhando dados. Passo a passo em [`docs/setup/`](../setup/README.md);
-o installer (`/api/installer`) automatiza Supabase e Vercel.
+A instância publicada mantém seus dados e integrações isolados. Criar outra
+instância exige provisionamento próprio de Vercel, Neon, gateway PostgREST,
+Upstash e Blob. A conexão Meta pode ser feita depois.
+
+O [guia de setup](../setup/README.md) separa primeiro acesso de provisionamento.
+O installer legado (`/api/installer`) e os guias Supabase/Docker permanecem como
+referência da arquitetura original.
+A fachada [`lib/neon-data-api.ts`](../../app/lib/neon-data-api.ts) prioriza a URL
+do gateway PostgREST configurado no servidor e conserva o endpoint Data API
+legado como fallback de compatibilidade. O servidor assina o JWT e o endpoint
+JWKS publica a chave pública. A mídia permanece privada no
+Blob e é servida por URLs assinadas com expiração.

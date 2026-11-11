@@ -53,13 +53,13 @@ export const SetupWizardView: React.FC<SetupWizardViewProps> = ({
     <div className="max-w-2xl mx-auto">
       {/* Header */}
       <div className="text-center mb-10">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-linear-to-br from-primary-500 to-red-600 mb-4">
-          <Sparkles size={32} className="text-white" />
+        <div className="ds-icon-tile mb-4" data-size="hero" aria-hidden="true">
+          <Sparkles className="size-1/2" />
         </div>
-        <h1 className="text-3xl font-bold text-white tracking-tight mb-2">
+        <h1 className="text-3xl font-bold text-[var(--ds-text-primary)] tracking-tight mb-2">
           Configuração Inicial
         </h1>
-        <p className="text-gray-400 max-w-md mx-auto">
+        <p className="text-[var(--ds-text-secondary)] max-w-md mx-auto">
           Para usar o WhatsFlow, você precisa configurar alguns serviços. 
           Siga os passos abaixo na ordem indicada.
         </p>
@@ -67,23 +67,23 @@ export const SetupWizardView: React.FC<SetupWizardViewProps> = ({
 
       {/* Progress Bar */}
       <div className="mb-8">
-        <div className="flex items-center justify-between text-sm mb-2">
-          <span className="text-gray-400">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm mb-2">
+          <span className="text-[var(--ds-text-secondary)]">
             Progresso: {completedSteps}/{steps.length} configurados
           </span>
           <button
             onClick={onRefresh}
             disabled={isLoading}
-            className="flex items-center gap-1 text-gray-400 hover:text-white transition-colors"
+            className="flex items-center gap-1 text-[var(--ds-text-secondary)] hover:text-[var(--ds-text-primary)] transition-colors"
           >
             <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
             Verificar novamente
           </button>
         </div>
-        <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+        <div className="h-2 bg-[var(--ds-bg-surface)] rounded-full overflow-hidden">
           <div 
-            className="h-full bg-linear-to-r from-primary-500 to-red-500 transition-all duration-500"
-            style={{ width: `${progressPercent}%` }}
+            className="ds-progress-fill h-full"
+            style={{ transform: `scaleX(${progressPercent / 100})` }}
           />
         </div>
       </div>
@@ -105,45 +105,45 @@ export const SetupWizardView: React.FC<SetupWizardViewProps> = ({
           return (
             <div
               key={step.id}
-              className={`relative rounded-2xl border transition-all duration-300 overflow-hidden ${
+              className={`relative rounded-2xl border transition-colors duration-300 overflow-hidden ${
                 isConfigured
-                  ? 'bg-red-500/5 border-red-500/30'
+                  ? 'bg-[var(--ds-status-success-bg)] border-[var(--ds-status-success)]/30'
                   : isError
                     ? 'bg-red-500/5 border-red-500/30'
                     : isNextStep
-                      ? 'bg-primary-500/5 border-primary-500/30 ring-2 ring-primary-500/20'
-                      : 'bg-zinc-900/50 border-white/10 opacity-60'
+                      ? 'bg-primary/5 border-ring/30 ring-2 ring-ring/20'
+                      : 'bg-[var(--ds-bg-elevated)] border-[var(--ds-border-default)] opacity-60'
               }`}
             >
               {/* Step number badge */}
               <div className={`absolute top-4 left-4 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                 isConfigured
-                  ? 'bg-red-500 text-white'
+                  ? 'bg-primary text-primary-foreground'
                   : isError
                     ? 'bg-red-500 text-white'
                     : isNextStep
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-zinc-700 text-gray-400'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-[var(--ds-bg-hover)] text-[var(--ds-text-secondary)]'
               }`}>
                 {isConfigured ? <Check size={16} /> : index + 1}
               </div>
 
               <div className="pl-16 pr-6 py-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
                       <h3 className={`font-semibold ${
-                        isConfigured ? 'text-red-400' : isError ? 'text-red-400' : 'text-white'
+                        isConfigured ? 'text-[var(--ds-status-success-text)]' : isError ? 'text-red-400' : 'text-[var(--ds-text-primary)]'
                       }`}>
                         {step.title}
                       </h3>
                       {step.isRequired && (
-                        <span className="px-1.5 py-0.5 bg-white/10 text-gray-400 text-[10px] font-medium rounded">
+                        <span className="px-1.5 py-0.5 bg-[var(--ds-bg-hover)] text-[var(--ds-text-secondary)] text-[10px] font-medium rounded">
                           OBRIGATÓRIO
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-400 mb-3">
+                    <p className="text-sm text-[var(--ds-text-secondary)] mb-3">
                       {step.description}
                     </p>
 
@@ -157,7 +157,7 @@ export const SetupWizardView: React.FC<SetupWizardViewProps> = ({
 
                     {/* Success message */}
                     {isConfigured && (
-                      <div className="flex items-center gap-2 text-sm text-red-400">
+                      <div className="flex items-center gap-2 text-sm text-[var(--ds-status-success-text)]">
                         <Check size={14} />
                         <span>Configurado com sucesso</span>
                       </div>
@@ -170,10 +170,10 @@ export const SetupWizardView: React.FC<SetupWizardViewProps> = ({
                       href={step.actionUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all ${
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-colors ${
                         isNextStep
-                          ? 'bg-primary-500 hover:bg-primary-400 text-white'
-                          : 'bg-zinc-700 text-gray-400 cursor-not-allowed'
+                          ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                          : 'bg-[var(--ds-bg-hover)] text-[var(--ds-text-secondary)] cursor-not-allowed'
                       }`}
                       onClick={(e) => {
                         if (!isNextStep) {
@@ -188,7 +188,7 @@ export const SetupWizardView: React.FC<SetupWizardViewProps> = ({
 
                   {/* Icon for configured state */}
                   {isConfigured && (
-                    <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
+                    <div className="w-10 h-10 shrink-0 rounded-xl bg-primary/15 text-primary [&_svg]:text-current flex items-center justify-center">
                       {step.icon}
                     </div>
                   )}
@@ -198,7 +198,7 @@ export const SetupWizardView: React.FC<SetupWizardViewProps> = ({
               {/* Arrow connector */}
               {index < steps.length - 1 && (
                 <div className="absolute -bottom-4 left-7 z-10">
-                  <div className={`w-0.5 h-8 ${isConfigured ? 'bg-red-500/30' : 'bg-zinc-700'}`} />
+                  <div className={`w-0.5 h-8 ${isConfigured ? 'bg-primary/30' : 'bg-[var(--ds-bg-hover)]'}`} />
                 </div>
               )}
             </div>
@@ -209,14 +209,14 @@ export const SetupWizardView: React.FC<SetupWizardViewProps> = ({
       {/* Bottom CTA */}
       {allConfigured ? (
         <div className="mt-8 text-center">
-          <div className="inline-flex items-center gap-2 px-6 py-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 mb-4">
+          <div className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success)]/30 rounded-xl text-[var(--ds-status-success-text)] mb-4">
             <Check size={20} />
             <span className="font-medium">Tudo configurado!</span>
           </div>
           {onContinueToSettings && (
             <button
               onClick={onContinueToSettings}
-              className="w-full py-4 bg-white hover:bg-gray-100 text-black font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+              className="w-full py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
             >
               Ir para Configurações
               <ChevronRight size={20} />
@@ -250,39 +250,39 @@ export const SetupWizardView: React.FC<SetupWizardViewProps> = ({
           </div>
         </div>
       ) : (
-        <div className="mt-8 p-4 bg-zinc-800/50 border border-white/10 rounded-xl text-center">
-          <p className="text-gray-400 text-sm">
+        <div className="mt-8 p-4 bg-[var(--ds-bg-surface)] border border-[var(--ds-border-default)] rounded-xl text-center">
+          <p className="text-[var(--ds-text-secondary)] text-sm">
             Complete os passos acima para liberar as configurações do WhatsApp.
           </p>
-          <p className="text-gray-500 text-xs mt-2">
+          <p className="text-[var(--ds-text-muted)] text-xs mt-2">
             Após configurar o QStash no Vercel, clique em "Verificar novamente" para atualizar.
           </p>
         </div>
       )}
 
       {/* Help section */}
-      <div className="mt-8 pt-6 border-t border-white/5">
-        <h4 className="text-sm font-medium text-gray-400 mb-3">Precisa de ajuda?</h4>
-        <div className="grid grid-cols-2 gap-3">
+      <div className="mt-8 pt-6 border-t border-[var(--ds-border-subtle)]">
+        <h4 className="text-sm font-medium text-[var(--ds-text-secondary)] mb-3">Precisa de ajuda?</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <a
             href="https://vercel.com/docs/storage/upstash"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 p-3 bg-zinc-800/50 hover:bg-zinc-800 border border-white/10 rounded-xl text-sm text-gray-300 transition-colors"
+            className="flex items-center gap-2 p-3 bg-[var(--ds-bg-surface)] hover:bg-[var(--ds-bg-surface)] border border-[var(--ds-border-default)] rounded-xl text-sm text-[var(--ds-text-secondary)] transition-colors"
           >
-            <Database size={16} className="text-red-400" />
+            <Database size={16} className="text-primary" />
             Docs: Upstash no Vercel
-            <ExternalLink size={12} className="text-gray-500 ml-auto" />
+            <ExternalLink size={12} className="text-[var(--ds-text-muted)] ml-auto" />
           </a>
           <a
             href="https://developers.facebook.com/docs/whatsapp/cloud-api/get-started"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 p-3 bg-zinc-800/50 hover:bg-zinc-800 border border-white/10 rounded-xl text-sm text-gray-300 transition-colors"
+            className="flex items-center gap-2 p-3 bg-[var(--ds-bg-surface)] hover:bg-[var(--ds-bg-surface)] border border-[var(--ds-border-default)] rounded-xl text-sm text-[var(--ds-text-secondary)] transition-colors"
           >
             <MessageSquare size={16} className="text-green-400" />
             Docs: WhatsApp Cloud API
-            <ExternalLink size={12} className="text-gray-500 ml-auto" />
+            <ExternalLink size={12} className="text-[var(--ds-text-muted)] ml-auto" />
           </a>
         </div>
       </div>

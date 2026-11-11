@@ -112,20 +112,20 @@ export function ConversationList({
       {/* Compact header - search integrated with filters */}
       <div className="px-3 py-2.5">
         {/* Search bar with integrated filter button */}
-        <div className="relative flex items-center gap-1.5">
-          <div className="relative flex-1">
+        <div className="relative flex flex-wrap items-center gap-1.5 md:flex-nowrap">
+          <div className="relative min-w-0 basis-full md:basis-auto md:flex-1">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--ds-text-muted)]" />
             <Input
               type="text"
               placeholder="Buscar..."
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-8 pr-8 h-8 text-xs bg-[var(--wa-search-bg)] border-0 rounded-lg text-[var(--wa-text)] placeholder:text-[var(--wa-text-secondary)] focus:ring-1 focus:ring-[var(--wa-unread-badge)]/30"
+              className="pl-8 pr-12 md:pr-8 h-11 md:h-8 text-xs bg-[var(--wa-search-bg)] border-0 rounded-lg text-[var(--wa-text)] placeholder:text-[var(--wa-text-secondary)] focus:ring-1 focus:ring-[var(--wa-unread-badge)]/30"
             />
             {search && (
               <button
                 onClick={() => onSearchChange('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--ds-text-muted)] hover:text-[var(--ds-text-secondary)] transition-colors"
+                className="absolute right-0 md:right-2 top-1/2 -translate-y-1/2 flex h-11 w-11 md:h-auto md:w-auto items-center justify-center text-[var(--ds-text-muted)] hover:text-[var(--ds-text-secondary)] transition-colors"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -138,7 +138,7 @@ export function ConversationList({
           {/* Tags manager button */}
           <button
             onClick={() => setShowTagManager(true)}
-            className="h-8 w-8 flex items-center justify-center text-[var(--ds-text-muted)] hover:text-[var(--ds-text-primary)] hover:bg-[var(--ds-bg-surface)] rounded-lg transition-colors"
+            className="h-11 w-11 md:h-8 md:w-8 shrink-0 flex items-center justify-center text-[var(--ds-text-muted)] hover:text-[var(--ds-text-primary)] hover:bg-[var(--ds-bg-surface)] rounded-lg transition-colors"
             title="Gerenciar tags"
           >
             <Tags className="h-3.5 w-3.5" />
@@ -161,15 +161,15 @@ export function ConversationList({
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
-                  'h-8 w-8 flex items-center justify-center rounded-lg transition-colors',
+                  'h-11 w-11 md:h-8 md:w-8 shrink-0 flex items-center justify-center rounded-lg transition-colors',
                   activeFilterCount > 0
-                    ? 'bg-red-500/10 text-red-400'
+                    ? 'bg-primary/10 text-primary'
                     : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text-secondary)] hover:bg-[var(--ds-bg-surface)]/60'
                 )}
               >
                 <SlidersHorizontal className="h-3.5 w-3.5" />
                 {activeFilterCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-red-500 text-[9px] text-white flex items-center justify-center">
+                  <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-primary text-[9px] text-primary-foreground flex items-center justify-center">
                     {activeFilterCount}
                   </span>
                 )}
@@ -272,7 +272,7 @@ export function ConversationList({
         {/* Unread count - subtle, inline */}
         {totalUnread > 0 && (
           <div className="flex items-center gap-1.5 mt-2 px-0.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
             <span className="text-[10px] text-[var(--ds-text-muted)]">
               {totalUnread} {totalUnread === 1 ? 'não lida' : 'não lidas'}
             </span>
@@ -312,8 +312,8 @@ export function ConversationList({
         ) : conversations.length === 0 ? (
           // Empty state - minimal
           <div className="flex flex-col items-center justify-center h-48 text-center px-6">
-            <div className="w-10 h-10 rounded-full bg-[var(--ds-bg-surface)]/50 flex items-center justify-center mb-2.5">
-              <Inbox className="h-5 w-5 text-[var(--ds-text-muted)]" />
+            <div className="ds-icon-tile mb-2.5" aria-hidden="true">
+              <Inbox className="size-1/2" />
             </div>
             <p className="text-xs text-[var(--ds-text-muted)]">
               {search || activeFilterCount > 0
@@ -323,7 +323,7 @@ export function ConversationList({
             {(search || activeFilterCount > 0) && (
               <button
                 onClick={clearFilters}
-                className="mt-2 text-[10px] text-red-400/80 hover:text-red-400 transition-colors"
+                className="mt-2 text-[10px] text-primary/80 hover:text-primary transition-colors"
               >
                 Limpar filtros
               </button>

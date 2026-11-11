@@ -1,12 +1,8 @@
 /**
  * Mem0 Client - Memória persistente para conversas
  *
- * Integra com Vercel AI SDK usando funções standalone.
+ * Usa a API REST da plataforma Mem0.
  * Graceful degradation: se Mem0 falhar, o sistema continua funcionando.
- *
- * IMPORTANTE: Usamos `getMemories` (não `retrieveMemories`) porque:
- * - `retrieveMemories` retorna string com boilerplate em inglês
- * - `getMemories` retorna array limpo que podemos formatar
  *
  * A API key pode vir de:
  * 1. Supabase (tabela settings) - prioridade
@@ -15,7 +11,6 @@
  * @see docs/MEM0_INTEGRATION.md para documentação completa
  */
 
-import { addMemories, getMemories } from '@mem0/vercel-ai-provider'
 import { settingsDb } from '@/lib/supabase-db'
 
 // =============================================================================
@@ -85,6 +80,21 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
       setTimeout(() => reject(new Error(`Mem0 timeout after ${ms}ms`)), ms)
     ),
   ])
+}
+
+/** REST operations used by conversation memory; the caller bounds the full JSON request. */
+async function postMemoryRequest(
+  operation: 'search' | 'add',
+  body: Record<string, unknown>,
+  apiKey: string
+): Promise<{ results?: Mem0Memory[] }> {
+  const response = await fetch(`${MEM0_API_BASE.replace('/v1', '/v3')}/memories/${operation}/`, {
+    method: 'POST',
+    headers: { Authorization: `Token ${apiKey}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!response.ok) throw new Error(`Mem0 API error: ${response.status}`)
+  return response.json()
 }
 
 /**
@@ -178,8 +188,8 @@ export async function isMem0EnabledAsync(): Promise<boolean> {
  * Recupera memórias relevantes para a conversa atual.
  * Retorna texto formatado para adicionar ao system prompt.
  *
- * Usa `getMemories` (não `retrieveMemories`) para ter controle
- * total sobre a formatação, sem boilerplate do SDK.
+ * Mantém o contato e a aplicação no mesmo filtro AND. O agente usa metadata
+ * para preservar a atribuição das memórias inferidas ao usuário.
  *
  * Em caso de erro ou timeout, retorna contexto vazio (graceful degradation).
  */
@@ -189,24 +199,26 @@ export async function fetchRelevantMemories(
 ): Promise<MemoryContext> {
   const creds = await getMem0Credentials()
 
-  if (!creds.enabled || !creds.apiKey) {
+  if (!creds.enabled || !creds.apiKey || !config.user_id?.trim()) {
     return { systemPromptAddition: '', memoryCount: 0 }
   }
 
   const startTime = Date.now()
 
   try {
-    // Busca memórias como array (não string formatada)
-    // IMPORTANTE: app_id deve ser passado para filtrar memórias do WhatsFlow
-    const memories = await withTimeout(
-      getMemories(query, {
-        user_id: config.user_id,
-        agent_id: config.agent_id,
-        app_id: config.app_id || APP_ID,
-        mem0ApiKey: creds.apiKey,
-      }),
+    const filters: Record<string, unknown>[] = [
+      { user_id: config.user_id },
+      { app_id: config.app_id || APP_ID },
+    ]
+    if (config.agent_id) filters.push({ metadata: { whatsflow_agent_id: config.agent_id } })
+    const result = await withTimeout(
+      postMemoryRequest('search', { query, filters: { AND: filters }, top_k: 5, threshold: 0.3 }, creds.apiKey),
       MEM0_TIMEOUT_MS
-    ) as Mem0Memory[] | undefined
+    )
+    const memories = Array.isArray(result?.results)
+      ? result.results.filter(memory => memory !== null && typeof memory === 'object' &&
+        typeof memory.memory === 'string' && memory.memory.trim().length > 0)
+      : []
 
     const latency = Date.now() - startTime
 
@@ -231,20 +243,6 @@ export async function fetchRelevantMemories(
 }
 
 /**
- * Converte mensagens simples para o formato LanguageModelV2Prompt
- * exigido pelo SDK do Mem0.
- */
-function toLanguageModelPrompt(
-  messages: Array<{ role: 'user' | 'assistant'; content: string }>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): any[] {
-  return messages.map((m) => ({
-    role: m.role,
-    content: [{ type: 'text', text: m.content }],
-  }))
-}
-
-/**
  * Salva a interação atual como memória.
  * Executa em background (fire-and-forget).
  *
@@ -256,21 +254,18 @@ export async function saveInteractionMemory(
 ): Promise<boolean> {
   const creds = await getMem0Credentials()
 
-  if (!creds.enabled || !creds.apiKey) {
+  if (!creds.enabled || !creds.apiKey || !config.user_id?.trim()) {
     return false
   }
 
   try {
-    // Converte para formato LanguageModelV2Prompt
-    const formattedMessages = toLanguageModelPrompt(messages)
-
     await withTimeout(
-      addMemories(formattedMessages, {
+      postMemoryRequest('add', {
+        messages,
         user_id: config.user_id,
-        agent_id: config.agent_id,
         app_id: config.app_id || APP_ID,
-        mem0ApiKey: creds.apiKey,
-      }),
+        ...(config.agent_id ? { metadata: { whatsflow_agent_id: config.agent_id } } : {}),
+      }, creds.apiKey),
       MEM0_TIMEOUT_MS
     )
 

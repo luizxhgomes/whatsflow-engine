@@ -1,10 +1,9 @@
 'use client';
 
 import React, { forwardRef } from 'react';
-import { Wifi, AlertTriangle, RefreshCw, AlertCircle, Shield, Edit2 } from 'lucide-react';
+import { Wifi, Link2, RefreshCw, AlertCircle, Shield, Edit2 } from 'lucide-react';
 import { AccountLimits } from '../../../lib/meta-limits';
 import { Container } from '@/components/ui/container';
-import { StatusBadge } from '@/components/ui/status-badge';
 
 export interface StatusCardProps {
   settings: {
@@ -37,37 +36,39 @@ export const StatusCard = forwardRef<HTMLDivElement, StatusCardProps>(function S
   },
   ref
 ) {
+  const ConnectionIcon = settings.isConnected ? Wifi : Link2;
+
   return (
     <div ref={ref}>
       <Container
         variant="glass"
         padding="lg"
-        className={`flex items-start gap-6 transition-all duration-500 ${settings.isConnected ? 'border-[var(--ds-status-success)]/30' : 'border-[var(--ds-status-error)]/30'}`}
+        className={`flex flex-col items-start gap-4 sm:flex-row sm:flex-wrap sm:gap-6 transition-colors duration-200 ${settings.isConnected ? 'border-[var(--ds-status-success)]/30' : 'border-[var(--ds-border-default)]'}`}
       >
-      <div className={`p-4 rounded-2xl border ${settings.isConnected ? 'bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-text)] border-[var(--ds-status-success)]/20' : 'bg-[var(--ds-status-error-bg)] text-[var(--ds-status-error-text)] border-[var(--ds-status-error)]/20'}`}>
-        {settings.isConnected ? <Wifi size={32} /> : <AlertTriangle size={32} />}
+      <div className="ds-icon-tile" data-tone={settings.isConnected ? 'brand' : 'neutral'} aria-hidden="true">
+        <ConnectionIcon className="size-1/2" />
       </div>
-      <div className="flex-1">
+      <div className="min-w-0 flex-1">
         <h3 className="text-xl font-bold text-[var(--ds-text-primary)]">
           {settings.isConnected ? 'Sistema Online' : 'Desconectado'}
         </h3>
 
-        <div className={`text-sm mt-3 space-y-1.5 ${settings.isConnected ? 'text-[var(--ds-text-secondary)]' : 'text-[var(--ds-status-error-text)]'}`}>
+        <div className="mt-3 space-y-1.5 text-sm text-[var(--ds-text-secondary)]">
           {settings.isConnected ? (
             <>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[var(--ds-text-muted)]">Conta Comercial:</span>
-                <span className="font-mono text-[var(--ds-status-success-text)] bg-[var(--ds-status-success-bg)] px-1.5 py-0.5 rounded">{settings.businessAccountId}</span>
+                <span className="font-mono break-all text-[var(--ds-status-success-text)] bg-[var(--ds-status-success-bg)] px-1.5 py-0.5 rounded">{settings.businessAccountId}</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[var(--ds-text-muted)]">Telefone Verificado:</span>
-                <span className="font-mono text-[var(--ds-status-success-text)] bg-[var(--ds-status-success-bg)] px-1.5 py-0.5 rounded">
+                <span className="font-mono break-all text-[var(--ds-status-success-text)] bg-[var(--ds-status-success-bg)] px-1.5 py-0.5 rounded">
                   {settings.displayPhoneNumber || settings.phoneNumberId}
                 </span>
               </div>
             </>
           ) : (
-            <p>Conexão com Meta API perdida. Por favor re-autentique suas credenciais abaixo.</p>
+            <p>Conecte sua conta Meta quando quiser habilitar o envio e o recebimento de mensagens.</p>
           )}
         </div>
 
@@ -83,7 +84,7 @@ export const StatusCard = forwardRef<HTMLDivElement, StatusCardProps>(function S
               <div className="flex flex-col gap-2">
                 <button
                   onClick={onRefreshLimits}
-                  className="h-10 px-3 bg-[var(--ds-status-error-bg)] rounded-lg text-xs font-medium text-[var(--ds-status-error-text)] border border-[var(--ds-status-error)]/20 flex items-center gap-1.5 hover:bg-[var(--ds-status-error)]/20 transition-colors focus-visible:outline-2 focus-visible:outline-red-500 focus-visible:outline-offset-2"
+                  className="min-h-11 sm:min-h-10 px-3 py-2 bg-[var(--ds-status-error-bg)] rounded-lg text-xs font-medium text-[var(--ds-status-error-text)] border border-[var(--ds-status-error)]/20 flex items-center gap-1.5 hover:bg-[var(--ds-status-error)]/20 transition-colors focus-visible:outline-2 focus-visible:outline-red-500 focus-visible:outline-offset-2"
                   aria-label="Tentar buscar limites da conta novamente"
                 >
                   <AlertCircle size={12} aria-hidden="true" />
@@ -120,10 +121,10 @@ export const StatusCard = forwardRef<HTMLDivElement, StatusCardProps>(function S
       </div>
 
       {settings.isConnected && (
-        <div className="flex flex-col gap-3 min-w-35">
+        <div className="flex w-full flex-wrap gap-3 sm:w-auto sm:min-w-35 sm:flex-col">
           <button
             onClick={onToggleEdit}
-            className={`group relative overflow-hidden rounded-xl h-10 px-4 text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-primary-500 focus-visible:outline-offset-2
+            className={`group relative overflow-hidden rounded-xl min-h-11 sm:min-h-10 px-4 py-2 text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-primary-500 focus-visible:outline-offset-2
               ${isEditing
                 ? 'bg-primary-600 text-white shadow-lg hover:bg-primary-500 dark:bg-white dark:text-black dark:hover:bg-neutral-100'
                 : 'bg-[var(--ds-bg-hover)] text-[var(--ds-text-primary)] hover:bg-[var(--ds-bg-surface)] border border-[var(--ds-border-default)] hover:border-[var(--ds-border-strong)]'
@@ -137,7 +138,7 @@ export const StatusCard = forwardRef<HTMLDivElement, StatusCardProps>(function S
 
           <button
             onClick={onDisconnect}
-            className="text-xs font-medium text-red-400/60 hover:text-red-400 hover:bg-red-500/5 h-10 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-red-500 focus-visible:outline-offset-2"
+            className="text-xs font-medium text-red-400/60 hover:text-red-400 hover:bg-red-500/5 min-h-11 sm:min-h-10 px-4 py-2 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-red-500 focus-visible:outline-offset-2"
             aria-label="Desconectar conta do WhatsApp"
           >
             Desconectar

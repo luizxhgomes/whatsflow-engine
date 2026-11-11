@@ -253,7 +253,7 @@ export const ContactListView: React.FC<ContactListViewProps> = ({
   }, [contacts, selectedIds]);
 
   return (
-    <Page className="flex flex-col h-full min-h-0">
+    <Page className="flex min-h-full flex-col md:h-full md:min-h-0">
       {/* Page Header with Actions */}
       <PageHeader>
         <div>

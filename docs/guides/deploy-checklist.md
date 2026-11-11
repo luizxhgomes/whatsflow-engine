@@ -1,115 +1,108 @@
-# Checklist de Deploy, whatsflow
+# Checklist de deploy
 
-Lista verificável antes de promover para produção. `@devops` é o owner formal; qualquer agente pode executar o checklist como preparação, mas o push final é exclusivo de `@devops`.
+Lista verificável antes de promover para produção. `@devops` executa push e
+publicação após autorização. Os demais agentes podem preparar e revisar.
+Referência publicada em 10/11/2026: `ec7fab5`, Vercel com Next.js 16/Node.js 22,
+Neon PostgreSQL em São Paulo via PostgREST limitado na VPS, Upstash QStash/Redis
+e Vercel Blob privado. A conexão Meta permanece opcional para usar o painel.
 
-## Pré-Flight (Local / PR)
+## Preparação local e revisão
 
-### Código
-- [ ] `npm run lint` passa sem warnings novos.
-- [ ] `npm run build` completa sem erros (gera `.next/`).
-- [ ] TypeScript: `npx tsc --noEmit` sem erros.
-- [ ] `npm run test` passa (unit + integration).
-- [ ] Testes E2E relevantes ao escopo do PR passam.
-- [ ] Coverage não regrediu em arquivos tocados (manual se CI não mede).
+Execute os comandos do app a partir de `app/`.
 
-### Segurança
-- [ ] Nenhum secret commitado (grep por `sk_`, `EAA`, `eyJ`, tokens conhecidos).
-- [ ] `.env` **não** está no diff.
-- [ ] Todas as rotas novas ou modificadas declaradas no `AUTH_POLICY` (ver ADR-003).
-- [ ] Dependências adicionadas não introduzem `npm audit` critical/high.
+- [ ] Confirmar branch, SHA e arquivos do release e preservar alterações de outras frentes.
+- [ ] Lint e `npx tsc --noEmit` sem regressões nos arquivos tocados.
+- [ ] Testes pertinentes passam. Registrar falhas legadas com a evidência da revisão anterior.
+- [ ] `npm run build` termina com sucesso. O comando executa `next build` e
+      [`scripts/verify-brand-css.mjs`](../../app/scripts/verify-brand-css.mjs).
+- [ ] O gate verifica o CSS referenciado pelos manifests de login e dashboard,
+      incluindo espaçamentos, altura do header, reflexo coral e `.ds-icon-tile`.
+- [ ] E2E e smoke relevantes à mudança passam. Comparar a cobertura com a revisão anterior.
+- [ ] Revisão independente concluída antes da publicação.
 
-### Documentação
-- [ ] `docs/CHANGELOG.md` atualizado com entrada em `[Unreleased]`.
-- [ ] ADR criado se decisão arquitetural (em `docs/architecture/`).
-- [ ] Story correspondente (`docs/stories/`) com File List e checkboxes em dia.
-- [ ] README raiz e `docs/README.md` refletem novas pastas/comandos se aplicável.
+### Segurança e documentação
 
-### Database
-- [ ] Se há migration nova: testada localmente (`supabase db reset`).
-- [ ] Migration é idempotente (`IF NOT EXISTS`/`IF EXISTS`).
-- [ ] RLS habilitado em tabelas novas com policy explícita.
-- [ ] Types TypeScript regenerados: `npx supabase gen types typescript > lib/database.types.ts`.
-- [ ] Backfill preparado (se adiciona NOT NULL/UNIQUE em tabela existente).
+- [ ] Nenhum segredo, arquivo de ambiente ou dado real de cliente entra no diff ou nos logs de validação.
+- [ ] Rotas novas mantêm o contrato de autenticação e assinatura aplicável; revisar o [ADR-003](../architecture/ADR-003-auth-layering.md) junto ao código atual.
+- [ ] Dependências alteradas têm auditoria revisada, sem atualização forçada ou risco oculto.
+- [ ] Changelog, README, ADR e story existentes são atualizados quando pertinentes, sem promover versão por rotina.
+- [ ] Primeiro acesso permite explorar/fechar/adiar o wizard sem gravar credenciais ou concluir a conexão Meta.
 
-## Pré-Deploy Staging
+## Banco de dados
 
-- [ ] PR aprovado por `@qa` (ou peer).
-- [ ] Merge em branch de staging (ou deploy preview na Vercel).
-- [ ] Smoke test manual em staging:
-  - Login com `MASTER_PASSWORD` funciona.
-  - Dashboard carrega sem erros no console.
-  - Criar campanha simples (draft).
-  - Enviar template para número de teste whitelistado.
-  - Webhook inbound chega e atualiza status.
-- [ ] Logs de staging sem `ERROR` não esperado nos últimos 30 min.
-- [ ] Métricas: latência de `/api/webhook` < 1s p95, `/api/messages/*` < 3s p95.
+O caminho publicado é Neon. Os arquivos em `app/supabase/migrations/` formam o
+histórico SQL. O Supabase CLI pertence ao fluxo de instalação legado.
 
-## Migrations em Produção
+- [ ] Migration revisada e testada numa branch isolada do Neon com o
+      [runner do repositório](../../app/infra/migrate-neon.mjs).
+- [ ] Compatibilidade entre código antigo/novo e schema avaliada antes de escolher a ordem de aplicação.
+- [ ] Roles limitadas, RLS, permissões e contratos de tipos verificados.
+- [ ] Backup ou ponto de restauração confirmado antes de alterar o banco, com plano de reversão.
+- [ ] Migrations aplicadas e schema conferidos sem copiar dados ou credenciais para evidências públicas.
+- [ ] Quando o schema muda, recarregar de forma controlada o cache do PostgREST:
+      o [Compose atual](../../app/infra/postgrest/compose.yaml) desativa o canal de notificações.
 
-**Sempre antes do código:**
+Para reverter alterações de schema, defina uma migration corretiva ou uma
+restauração aprovada conforme o risco.
 
-1. Confirmar backup do Supabase (automatizado, mas conferir snapshot recente).
-2. Rodar `supabase migration list` em produção para confirmar estado atual.
-3. Aplicar migrations uma por uma (`supabase db push`).
-4. Validar cada uma: query rápida checando schema esperado.
-5. Só então promover código.
+## Preview e promoção
 
-**Rollback plan:**
-- Nunca rollback automático de migration. Documente no ADR/CHANGELOG o caminho de reversão (nova migration de desfazimento).
+- [ ] Configuração de preview separada da produção e runtime Node.js 22 confirmado.
+- [ ] Preview corresponde ao SHA aprovado e passa pelo mesmo build com gate de CSS.
+- [ ] Login, dashboard, contatos, templates, campanhas e Inbox abrem sem erros inesperados.
+- [ ] Link direto do Inbox mantém a navegação; rascunho não desaparece ao cruzar o breakpoint mobile/desktop.
+- [ ] Se Meta está ausente, é possível explorar o painel e configurar depois.
+- [ ] Com a Meta conectada, use um número de teste autorizado para validar envio,
+      recebimento, assinatura do webhook e atualização de status.
+- [ ] Logs e respostas do gateway não apresentam erros inesperados; limites e latências são medidos, não presumidos.
+- [ ] `@devops` publica o SHA aprovado, acompanha o build e valida o domínio final.
 
-## Deploy Vercel
+## CSS real e validação visual
 
-### Preview
-- [ ] Todas as env vars preview configuradas (`vercel env ls`).
-- [ ] Preview URL testada manualmente.
+A publicação anterior reutilizou CSS antigo do cache de build. A correção fez
+uma compilação limpa e adicionou uma verificação do CSS gerado. O teste em
+320 px também passou a cobrir o ajuste dos filtros de Contatos.
 
-### Produção
-- [ ] Branch `main` atualizada e CI verde.
-- [ ] Release note em `CHANGELOG.md` promovido de `[Unreleased]` para versão.
-- [ ] `@devops *push` ou merge manual com squash commit semântico.
-- [ ] Deploy na Vercel inicia automaticamente.
-- [ ] Acompanhar build em `vercel.com/{org}/{project}/deployments`.
-- [ ] Smoke test em produção **imediatamente** após deploy.
+- [ ] Fazer GET HTTP do HTML de login e dos assets CSS referenciados, sem depender
+      do service worker do navegador. Confirmar os mesmos marcadores exigidos
+      pelo script e conferir conteúdo/hash quando houver divergência.
+- [ ] Repetir o teste no domínio público após a promoção e comparar os hashes dos arquivos.
+- [ ] Se os marcadores faltarem, interromper a promoção e investigar fonte,
+      manifests e cache de build. Use um GET HTTP direto para isolar a resposta da Vercel.
+- [ ] Abrir o release no Chrome, conferir estilos computados e as aparências clara e escura.
+- [ ] Verificar login, dashboard, contatos, templates, campanhas e Inbox em
+      320 e 390 px, tablet, desktop, paisagem e diferentes níveis de zoom.
+- [ ] Os elementos cabem na largura da página, o modal rola quando necessário e
+      os botões ficam acessíveis por toque e teclado.
+- [ ] Logo, ícones, espaçamentos e fallback sem animação estão corretos.
+      Registrar viewport/zoom e evidência visual antes de concluir.
 
-## Pós-Deploy (T+30min)
+## Pós-deploy e recuperação
 
-- [ ] Logs sem spike de erros.
-- [ ] Dashboards: contadores de `campaign_contacts` avançam normalmente.
-- [ ] `account_alerts` não tem novo alerta de pagamento (131042).
-- [ ] Webhook signature verification com 100% de sucesso (sem `skipped_missing_secret`).
-- [ ] Rate limit adaptativo não saturou (tier não caiu para limite mínimo).
+- [ ] Repetir login e navegação no endereço publicado e verificar logs e health por serviço.
+- [ ] Confirmar adiamento do wizard após reload e nova oferta após login válido
+      quando a Meta estiver ausente.
+- [ ] Se houver tráfego autorizado, acompanhar filas, falhas de campanha, alertas
+      da conta, assinatura dos webhooks e limites adaptativos.
+- [ ] Registrar SHA, resultado dos gates, pendências e responsável pela operação.
 
-## Hotfix Path (emergência)
+Para hotfix, partir da revisão publicada, aplicar a correção mínima, revisar e
+passar pelos gates correspondentes. Prefira um deploy corretivo. Para voltar
+à versão anterior do app, confira schema e configuração antes da promoção e
+trate a recuperação do banco pelo procedimento próprio.
 
-1. Branch a partir de `main` (não de feature antiga).
-2. Fix minimal, um arquivo por problema.
-3. PR marcado `[HOTFIX]`, review acelerado por `@qa`.
-4. Merge + deploy imediatos.
-5. Entrada dedicada no `CHANGELOG.md` com severidade.
-6. Post-mortem em `docs/architecture/incident-{data}.md` dentro de 48h.
+## Responsabilidades e referências
 
-## Rollback de Produção
+| Ação | Responsável |
+|---|---|
+| Preparar checklist e provas | Implementador |
+| Revisar o release | `@qa` ou peer independente |
+| Alterar banco em produção | `@data-engineer` com coordenação de `@devops` |
+| Push, publicação e promoção | `@devops`, após autorização |
+| Smoke e acompanhamento | `@devops` e responsável pela operação |
 
-Preferência: **roll forward** (novo deploy que corrige).
-Caso necessário reverter:
-1. `vercel rollback` para deployment anterior.
-2. Se migration foi aplicada, criar nova migration revertendo.
-3. Registrar incidente em `docs/architecture/`.
-
-## Ownership
-
-| Ação | Quem |
-|------|------|
-| Executar checklist pré-flight | Qualquer agente / dev |
-| Aprovar PR | `@qa` ou peer |
-| Rodar migration em produção | `@data-engineer` + `@devops` |
-| `git push` para main | `@devops` (exclusivo) |
-| Disparar deploy Vercel | `@devops` |
-| Pós-deploy monitoring | `@devops` + on-call |
-
-## Referências
-
-- `.claude/rules/agent-authority.md`: matriz de delegação
-- `docs/architecture/ADR-003-auth-layering.md`: policy de auth
-- `docs/architecture/ADR-004-webhook-dedup.md`: dedup
-- `docs/guides/running-migrations.md`
+- [Setup atual e referências legadas](../setup/README.md)
+- [Topologia](../architecture/TOPOLOGIA.md)
+- [Auth em camadas](../architecture/ADR-003-auth-layering.md)
+- [Deduplicação de webhook](../architecture/ADR-004-webhook-dedup.md)
+- [Guia legado de migrations](running-migrations.md)

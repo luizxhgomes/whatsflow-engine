@@ -1,13 +1,13 @@
 import { PageLayoutScope } from '@/components/providers/PageLayoutProvider'
 
 export default function ContactsLayout({ children }: { children: React.ReactNode }) {
-  // Padrão do dashboard (max-w + padding) + altura cheia e scroll interno.
+  // Em telas curtas, a página pode rolar além da altura disponível.
   return (
     <PageLayoutScope
       value={{
         width: 'content',
         padded: true,
-        overflow: 'hidden',
+        overflow: 'auto',
         height: 'full',
         showAccountAlerts: true,
       }}

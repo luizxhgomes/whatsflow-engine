@@ -2,7 +2,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { campaignService, CampaignListParams, CampaignListResult, CampaignPrecheckResult } from './campaignService'
 import { Campaign, CampaignStatus, MessageStatus } from '../types'
 
-import { createMockFetchResponse, setupFetchMock } from '@/tests/helpers'
+function createMockFetchResponse(data: unknown, options: Partial<Response> = {}) {
+  return { ok: true, status: 200, json: async () => data, text: async () => JSON.stringify(data), ...options }
+}
+function setupFetchMock() {
+  const fetchMock = vi.fn()
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
+}
 
 // Mock console methods to avoid noise in tests
 vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -35,6 +42,20 @@ describe('campaignService', () => {
 
   afterEach(() => {
     vi.resetAllMocks()
+  })
+
+  describe('getStatuses', () => {
+    it('consulta apenas os estados em rota própria sem cache', async () => {
+      const snapshots = [{ id: 'c1', name: 'Teste', status: CampaignStatus.SENDING, completed_at: null }]
+      mockFetch.mockResolvedValueOnce(createMockFetchResponse(snapshots))
+      await expect(campaignService.getStatuses()).resolves.toEqual(snapshots)
+      expect(mockFetch).toHaveBeenCalledWith('/api/campaigns?statusOnly=true', { cache: 'no-store' })
+    })
+
+    it.each([401, 500])('propaga HTTP %s em vez de reiniciar baseline com lista vazia', async status => {
+      mockFetch.mockResolvedValueOnce(createMockFetchResponse({ error: 'Falha' }, { ok: false, status }))
+      await expect(campaignService.getStatuses()).rejects.toThrow(String(status))
+    })
   })
 
   // =============================================================================
@@ -85,13 +106,9 @@ describe('campaignService', () => {
       expect(mockFetch).toHaveBeenCalledWith('/api/campaigns?limit=10&offset=0')
     })
 
-    it('deve retornar lista vazia quando fetch falha', async () => {
-      mockFetch.mockResolvedValueOnce(createMockFetchResponse(null, { ok: false, statusText: 'Internal Server Error' }))
-
-      const result = await campaignService.list({ limit: 10, offset: 0 })
-
-      expect(result).toEqual({ data: [], total: 0, limit: 10, offset: 0 })
-      expect(console.error).toHaveBeenCalledWith('Failed to fetch campaigns:', 'Internal Server Error')
+    it.each([401, 500])('deve propagar HTTP %s da listagem', async status => {
+      mockFetch.mockResolvedValueOnce(createMockFetchResponse(null, { ok: false, status }))
+      await expect(campaignService.list({ limit: 10, offset: 0 })).rejects.toThrow(String(status))
     })
   })
 
@@ -109,12 +126,9 @@ describe('campaignService', () => {
       expect(result).toEqual(mockCampaigns)
     })
 
-    it('deve retornar array vazio quando fetch falha', async () => {
-      mockFetch.mockResolvedValueOnce(createMockFetchResponse(null, { ok: false, statusText: 'Not Found' }))
-
-      const result = await campaignService.getAll()
-
-      expect(result).toEqual([])
+    it.each([401, 500])('deve propagar HTTP %s ao buscar todas as campanhas', async status => {
+      mockFetch.mockResolvedValueOnce(createMockFetchResponse(null, { ok: false, status }))
+      await expect(campaignService.getAll()).rejects.toThrow(String(status))
     })
   })
 
@@ -140,13 +154,9 @@ describe('campaignService', () => {
       expect(result).toBeUndefined()
     })
 
-    it('deve retornar undefined para outros erros', async () => {
-      mockFetch.mockResolvedValueOnce(createMockFetchResponse(null, { ok: false, status: 500, statusText: 'Server Error' }))
-
-      const result = await campaignService.getById('campaign-123')
-
-      expect(result).toBeUndefined()
-      expect(console.error).toHaveBeenCalledWith('Failed to fetch campaign:', 'Server Error')
+    it.each([401, 500])('deve propagar HTTP %s ao buscar uma campanha', async status => {
+      mockFetch.mockResolvedValueOnce(createMockFetchResponse(null, { ok: false, status }))
+      await expect(campaignService.getById('campaign-123')).rejects.toThrow(String(status))
     })
   })
 
@@ -167,20 +177,14 @@ describe('campaignService', () => {
       expect(result).toEqual(mockMetrics)
     })
 
-    it('deve retornar null quando fetch falha', async () => {
-      mockFetch.mockResolvedValueOnce(createMockFetchResponse(null, { ok: false }))
-
-      const result = await campaignService.getMetrics('campaign-123')
-
-      expect(result).toBeNull()
+    it.each([401, 500])('deve propagar HTTP %s das métricas', async status => {
+      mockFetch.mockResolvedValueOnce(createMockFetchResponse(null, { ok: false, status }))
+      await expect(campaignService.getMetrics('campaign-123')).rejects.toThrow(String(status))
     })
 
-    it('deve retornar null em caso de excecao', async () => {
+    it('deve propagar erro de rede das métricas', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
-
-      const result = await campaignService.getMetrics('campaign-123')
-
-      expect(result).toBeNull()
+      await expect(campaignService.getMetrics('campaign-123')).rejects.toThrow('Network error')
     })
   })
 
@@ -223,16 +227,9 @@ describe('campaignService', () => {
       expect(mockFetch).toHaveBeenCalledWith('/api/campaigns/campaign-123/messages?limit=20&offset=10&status=sent&includeRead=1')
     })
 
-    it('deve retornar estrutura vazia quando fetch falha', async () => {
-      mockFetch.mockResolvedValueOnce(createMockFetchResponse(null, { ok: false, statusText: 'Error' }))
-
-      const result = await campaignService.getMessages('campaign-123')
-
-      expect(result).toEqual({
-        messages: [],
-        stats: { total: 0, pending: 0, sent: 0, delivered: 0, read: 0, skipped: 0, failed: 0 },
-        pagination: { limit: 50, offset: 0, total: 0, hasMore: false },
-      })
+    it.each([401, 500])('deve propagar HTTP %s das mensagens', async status => {
+      mockFetch.mockResolvedValueOnce(createMockFetchResponse(null, { ok: false, status }))
+      await expect(campaignService.getMessages('campaign-123')).rejects.toThrow(String(status))
     })
   })
 
@@ -814,28 +811,13 @@ describe('campaignService', () => {
   // ERROR HANDLING - HTTP ERRORS
   // =============================================================================
   describe('error handling - HTTP 500', () => {
-    it('list deve retornar lista vazia para 500', async () => {
-      mockFetch.mockResolvedValueOnce(createMockFetchResponse(null, { ok: false, status: 500, statusText: 'Internal Server Error' }))
-
-      const result = await campaignService.list({ limit: 10, offset: 0 })
-
-      expect(result).toEqual({ data: [], total: 0, limit: 10, offset: 0 })
-    })
-
-    it('getAll deve retornar array vazio para 500', async () => {
+    it.each([
+      ['list', () => campaignService.list({ limit: 10, offset: 0 })],
+      ['getAll', () => campaignService.getAll()],
+      ['getById', () => campaignService.getById('campaign-123')],
+    ] as const)('%s propaga falha ao React Query', async (_method, query) => {
       mockFetch.mockResolvedValueOnce(createMockFetchResponse(null, { ok: false, status: 500 }))
-
-      const result = await campaignService.getAll()
-
-      expect(result).toEqual([])
-    })
-
-    it('getById deve retornar undefined para 500', async () => {
-      mockFetch.mockResolvedValueOnce(createMockFetchResponse(null, { ok: false, status: 500, statusText: 'Server Error' }))
-
-      const result = await campaignService.getById('campaign-123')
-
-      expect(result).toBeUndefined()
+      await expect(query()).rejects.toThrow('500')
     })
   })
 })

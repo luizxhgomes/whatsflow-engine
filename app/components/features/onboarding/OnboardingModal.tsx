@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import { Rocket } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -167,7 +168,7 @@ interface OnboardingModalProps {
   onMarkComplete: () => Promise<void>;
   /** Força exibição do modal em um step específico (ex: 'configure-webhook') */
   forceStep?: OnboardingStep;
-  /** Callback para fechar o modal (limpa forceStep no pai) */
+  /** Callback para adiar o guia ou fechar o tutorial, sem concluir a configuração */
   onClose?: () => void;
   /** Modo tutorial: mostra só o conteúdo + botão fechar, sem navegação */
   tutorialMode?: boolean;
@@ -387,20 +388,19 @@ export function OnboardingModal({ isConnected, onSaveCredentials, onMarkComplete
   if (!shouldShow) return null;
 
   return (
-    <Dialog open={true}>
+    <Dialog open={true} onOpenChange={(open) => !open && onClose?.()}>
       <DialogContent
         className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto"
         overlayClassName="bg-black/80 backdrop-blur-sm"
-        showCloseButton={false}
+        showCloseButton={true}
         onPointerDownOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
       >
         {currentStep === 'welcome' ? (
           <>
             <DialogHeader className="text-center pb-2">
               <div className="flex justify-center mb-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg">
-                  <span className="text-3xl">🚀</span>
+                <div className="ds-icon-tile" data-size="hero" aria-hidden="true">
+                  <Rocket className="size-1/2" />
                 </div>
               </div>
               <DialogTitle className="text-2xl">Bem-vindo ao WhatsFlow!</DialogTitle>
@@ -417,6 +417,15 @@ export function OnboardingModal({ isConnected, onSaveCredentials, onMarkComplete
         )}
 
         {renderStep()}
+
+        <div className="space-y-2 border-t border-[var(--ds-border-subtle)] pt-4">
+          <Button type="button" variant="outline" className="w-full" onClick={onClose}>
+            Explorar o painel
+          </Button>
+          <p className="text-center text-sm text-[var(--ds-text-secondary)]">
+            Para enviar e receber mensagens, conclua a conexão do WhatsApp em Configurações.
+          </p>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -15,6 +15,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { settingsDb } from '@/lib/supabase-db'
+import { verifyMetaWebhookSignature } from '@/lib/webhook-signature'
 import {
   decryptRequest,
   encryptResponse,
@@ -35,7 +36,12 @@ const KEY_REGEN_COOLDOWN_MS = 10 * 60 * 1000
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    const rawBody = await request.text()
+    const signature = await verifyMetaWebhookSignature({ request, rawBody })
+    if (!signature.valid) {
+      return NextResponse.json({ error: 'Invalid Meta signature' }, { status: signature.reason === 'missing_secret' ? 503 : 401 })
+    }
+    const body = JSON.parse(rawBody)
     console.log('[flow-endpoint] 📥 POST received at', new Date().toISOString())
 
     // Valida campos obrigatorios

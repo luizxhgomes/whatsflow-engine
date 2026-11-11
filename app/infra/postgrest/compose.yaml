@@ -1,0 +1,72 @@
+# Proposta local. Implantar somente após aprovação da rota e das credenciais.
+# O Traefik existente fornece TLS; nenhuma porta do host é publicada.
+name: whatsflow-rest
+
+services:
+  postgrest:
+    image: postgrest/postgrest:v16.5
+    restart: unless-stopped
+    user: "1000:1000"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    cpus: "0.50"
+    mem_limit: 256m
+    pids_limit: 64
+    environment:
+      # URI direta do Neon, usuário whatsflow_rest, sem senha e com verify-full.
+      PGRST_DB_URI: ${PGRST_DB_URI:?Defina a URI da role limitada sem senha}
+      PGPASSWORD: ${WHATSFLOW_POSTGREST_PASSWORD:?Defina o segredo da role limitada}
+      PGSSLROOTCERT: /etc/ssl/certs/ca-certificates.crt
+      PGRST_JWT_SECRET: ${NEON_DATA_API_PUBLIC_JWK:?Defina somente a JWK publica RSA}
+      PGRST_JWT_AUD: whatsflow-data
+      PGRST_JWT_ROLE_CLAIM_KEY: "$$.role"
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_EXTRA_SEARCH_PATH: public,extensions
+      PGRST_DB_AGGREGATES_ENABLED: "true"
+      PGRST_DB_PLAN_ENABLED: "false"
+      PGRST_LOG_QUERY: "false"
+      PGRST_DB_CONFIG: "false"
+      PGRST_DB_MAX_ROWS: "1000"
+      PGRST_DB_POOL: "5"
+      PGRST_DB_POOL_MAX_IDLETIME: "30"
+      # Não manter LISTEN permanente nem consultar o banco por healthcheck.
+      # Mudanças de schema exigem reinício controlado para recarregar o cache.
+      PGRST_DB_CHANNEL_ENABLED: "false"
+      PGRST_OPENAPI_MODE: disabled
+      PGRST_SERVER_PORT: "3000"
+      PGRST_LOG_LEVEL: warn
+    volumes:
+      - type: bind
+        source: /etc/ssl/certs/ca-certificates.crt
+        target: /etc/ssl/certs/ca-certificates.crt
+        read_only: true
+        bind:
+          create_host_path: false
+    networks:
+      - easypanel
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: easypanel
+      traefik.http.routers.whatsflow-rest-http.rule: Host(`${WHATSFLOW_REST_HOST:?Defina o host aprovado}`)
+      traefik.http.routers.whatsflow-rest-http.entrypoints: http
+      traefik.http.routers.whatsflow-rest-http.middlewares: whatsflow-rest-https
+      traefik.http.middlewares.whatsflow-rest-https.redirectscheme.scheme: https
+      traefik.http.routers.whatsflow-rest.rule: Host(`${WHATSFLOW_REST_HOST:?Defina o host aprovado}`)
+      traefik.http.routers.whatsflow-rest.entrypoints: https
+      traefik.http.routers.whatsflow-rest.tls: "true"
+      traefik.http.routers.whatsflow-rest.service: whatsflow-rest
+      traefik.http.services.whatsflow-rest.loadbalancer.server.port: "3000"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  easypanel:
+    external: true
+    name: easypanel

@@ -52,6 +52,13 @@ export interface CampaignListResult {
   offset: number;
 }
 
+export interface CampaignStatusSnapshot {
+  id: string;
+  name: string;
+  status: CampaignStatus;
+  completed_at: string | null;
+}
+
 interface RealMessageStatus {
   phone: string;
   status: 'sent' | 'failed';
@@ -117,6 +124,12 @@ export interface CampaignPrecheckResult {
 }
 
 export const campaignService = {
+  getStatuses: async (): Promise<CampaignStatusSnapshot[]> => {
+    const response = await fetch('/api/campaigns?statusOnly=true', { cache: 'no-store' });
+    if (!response.ok) throw new Error(`${response.status}: Falha ao buscar estados das campanhas`);
+    return response.json();
+  },
+
   list: async (params: CampaignListParams): Promise<CampaignListResult> => {
     const searchParams = new URLSearchParams();
     searchParams.set('limit', String(params.limit));
@@ -128,8 +141,7 @@ export const campaignService = {
 
     const response = await fetch(`/api/campaigns?${searchParams.toString()}`);
     if (!response.ok) {
-      console.error('Failed to fetch campaigns:', response.statusText);
-      return { data: [], total: 0, limit: params.limit, offset: params.offset };
+      throw new Error(`${response.status}: Falha ao buscar campanhas`);
     }
     return response.json();
   },
@@ -138,8 +150,7 @@ export const campaignService = {
     // Fetch from real API
     const response = await fetch('/api/campaigns');
     if (!response.ok) {
-      console.error('Failed to fetch campaigns:', response.statusText);
-      return [];
+      throw new Error(`${response.status}: Falha ao buscar campanhas`);
     }
     return response.json();
   },
@@ -149,8 +160,7 @@ export const campaignService = {
     const response = await fetch(`/api/campaigns/${id}`);
     if (!response.ok) {
       if (response.status === 404) return undefined;
-      console.error('Failed to fetch campaign:', response.statusText);
-      return undefined;
+      throw new Error(`${response.status}: Falha ao buscar campanha`);
     }
 
     // Importante: este endpoint já é no-store/force-dynamic.
@@ -160,16 +170,12 @@ export const campaignService = {
   },
 
   getMetrics: async (id: string): Promise<any | null> => {
-    try {
-      const response = await fetch(`/api/campaigns/${id}/metrics`, {
-        cache: 'no-store',
-        headers: { 'Cache-Control': 'no-cache' },
-      })
-      if (!response.ok) return null
-      return response.json()
-    } catch {
-      return null
-    }
+    const response = await fetch(`/api/campaigns/${id}/metrics`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' },
+    })
+    if (!response.ok) throw new Error(`${response.status}: Falha ao buscar métricas da campanha`)
+    return response.json()
   },
 
   // INSTANT: Get pending messages - returns empty array (real data comes from getMessages)
@@ -193,8 +199,7 @@ export const campaignService = {
     const url = `/api/campaigns/${id}/messages${params.toString() ? `?${params}` : ''}`;
     const response = await fetch(url);
     if (!response.ok) {
-      console.error('Failed to fetch messages:', response.statusText);
-      return { messages: [], stats: { total: 0, pending: 0, sent: 0, delivered: 0, read: 0, skipped: 0, failed: 0 }, pagination: { limit: 50, offset: 0, total: 0, hasMore: false } };
+      throw new Error(`${response.status}: Falha ao buscar mensagens da campanha`);
     }
     return response.json();
   },

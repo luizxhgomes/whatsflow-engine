@@ -11,7 +11,8 @@ import { getActiveSuppressionsByPhone } from '@/lib/phone-suppressions'
 import { fetchWithTimeout, safeJson } from '@/lib/server-http'
 
 import { CampaignStatus, ContactStatus } from '@/types'
-import { unauthorizedResponse, verifyApiKey } from '@/lib/auth'
+import { unauthorizedResponse, verifyQStashRequest } from '@/lib/auth'
+import { requireSessionOrApiKey, getLocalWorkflowHeaders } from '@/lib/request-auth'
 import { createHash } from 'crypto'
 
 interface DispatchContact {
@@ -175,16 +176,13 @@ async function fetchSingleTemplateFromMeta(params: {
 // Trigger campaign dispatch workflow
 export async function POST(request: NextRequest) {
   const bodyText = await request.text()
-  const signature = request.headers.get('upstash-signature')
-  const cookieHeader = request.headers.get('cookie') || ''
-  const hasSession = cookieHeader.includes('whatsflow_session=')
-
-  // Auth: QStash requests têm signature header, requests manuais usam session ou API key
-  if (!signature && !hasSession) {
-    const authResult = await verifyApiKey(request)
-    if (!authResult.valid) {
-      return unauthorizedResponse(authResult.error)
+  if (request.headers.has('upstash-signature')) {
+    if (!await verifyQStashRequest(request, bodyText)) {
+      return unauthorizedResponse('Invalid QStash signature')
     }
+  } else {
+    const denied = await requireSessionOrApiKey(request)
+    if (denied) return denied
   }
 
   const body = bodyText ? JSON.parse(bodyText) : {}
@@ -944,7 +942,7 @@ export async function POST(request: NextRequest) {
     //   Caso contrário, acabamos chamando produção (versão/config diferente) e o usuário
     //   vê “turbo não muda nada” porque o envio real está rodando em outro deployment.
     // - Em produção, ainda faz sentido usar um domínio estável (quando configurado).
-    const explicitAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || null
+    const explicitAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.WEBHOOK_BASE_URL?.trim() || null
     const requestOrigin = getRequestOrigin(request)
 
     const vercelEnv = (process.env.VERCEL_ENV || '').trim() // 'production' | 'preview' | 'development'
@@ -1012,7 +1010,7 @@ export async function POST(request: NextRequest) {
 
       const response = await fetchWithTimeout(`${baseUrl}/api/campaign/workflow`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await getLocalWorkflowHeaders(`${baseUrl}/api/campaign/workflow`),
         body: JSON.stringify(workflowPayload),
         timeoutMs: 30000,
       })

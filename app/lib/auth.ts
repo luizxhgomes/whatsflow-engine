@@ -1,4 +1,5 @@
 import { randomBytes } from 'crypto'
+import { Receiver } from '@upstash/qstash'
 
 /**
  * Authentication & Authorization Middleware
@@ -35,12 +36,13 @@ export const ADMIN_ENDPOINTS = [
 
 // Public endpoints that don't require authentication
 export const PUBLIC_ENDPOINTS = [
-  '/api/webhook',        // Meta webhook verification
-  '/api/health',         // Health check
-  '/api/system',         // System status (public info only)
-  '/api/flows',          // Workflow management (internal dashboard)
-  '/api/flow-engine',    // Workflow execution engine (internal)
-  '/api/campaign/dispatch', // QStash dispatch webhook (signature verified)
+  '/api/auth/login',
+  '/api/auth/logout',
+  '/api/auth/status',
+  '/api/webhook',
+  '/api/health',
+  '/api/system',
+  '/api/flows/endpoint', // Meta data exchange, verified by its handler
 ]
 
 // ============================================================================
@@ -53,7 +55,7 @@ export const PUBLIC_ENDPOINTS = [
  * Expects header: Authorization: Bearer <api_key>
  * Or: X-API-Key: <api_key>
  */
-export async function verifyApiKey(request: NextRequest): Promise<AuthResult> {
+export async function verifyApiKey(request: Pick<NextRequest, 'headers'>): Promise<AuthResult> {
   // Extract API key from headers
   const authHeader = request.headers.get('authorization')
   const apiKeyHeader = request.headers.get('x-api-key')
@@ -101,15 +103,17 @@ export function isAdminEndpoint(pathname: string): boolean {
 /**
  * Check if request is for a public endpoint
  */
-export function isPublicEndpoint(pathname: string): boolean {
-  return PUBLIC_ENDPOINTS.some(endpoint => pathname.startsWith(endpoint))
+export function isPublicEndpoint(pathname: string, method?: string): boolean {
+  // The media handler verifies its own expiring signed URL.
+  if (pathname === '/api/media') return method === 'GET' || method === 'HEAD'
+  return PUBLIC_ENDPOINTS.includes(pathname) || /^\/api\/public\/lead-forms\/[^/]+(?:\/submit)?$/.test(pathname)
 }
 
 /**
  * Verify admin access
  * Returns true if request has admin-level API key
  */
-export async function verifyAdminAccess(request: NextRequest): Promise<AuthResult> {
+export async function verifyAdminAccess(request: Pick<NextRequest, 'headers'>): Promise<AuthResult> {
   const authResult = await verifyApiKey(request)
 
   if (!authResult.valid) {
@@ -171,4 +175,27 @@ export function forbiddenResponse(message: string = 'Forbidden'): NextResponse {
  */
 export function generateApiKey(): string {
   return 'szap_' + randomBytes(24).toString('base64url').slice(0, 32)
+}
+
+/** QStash authentication binds the signature to the raw body and destination URL. */
+export async function verifyQStashRequest(request: Request, body: string): Promise<boolean> {
+  const signature = request.headers.get('upstash-signature')
+  const currentSigningKey = process.env.QSTASH_CURRENT_SIGNING_KEY
+  const nextSigningKey = process.env.QSTASH_NEXT_SIGNING_KEY
+  if (!signature || !currentSigningKey || !nextSigningKey) return false
+  try {
+    const url = new URL(request.url)
+    const publicBase = process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.WEBHOOK_BASE_URL?.trim()
+    if (publicBase && ['localhost', '127.0.0.1', '[::1]', '0.0.0.0'].includes(url.hostname)) {
+      const origin = new URL(publicBase)
+      url.protocol = origin.protocol
+      url.host = origin.host
+      url.port = origin.port
+    }
+    return await new Receiver({ currentSigningKey, nextSigningKey }).verify({
+      signature, body, url: url.href,
+    })
+  } catch {
+    return false
+  }
 }

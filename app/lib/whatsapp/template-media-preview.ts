@@ -1,5 +1,6 @@
 import { createHash } from 'crypto'
 import { supabase } from '@/lib/supabase'
+import { uploadPrivateMedia } from '@/lib/media-storage'
 
 type HeaderMediaPreviewResult = {
   url: string
@@ -204,7 +205,7 @@ export async function ensureHeaderMediaPreviewUrl(params: EnsureHeaderMediaPrevi
 
   const client = supabase.admin
   if (!client) {
-    warn(logger, '[TemplatePreview] Supabase admin indisponível.')
+    warn(logger, '[TemplatePreview] Banco de dados indisponível.')
     return null
   }
 
@@ -227,7 +228,7 @@ export async function ensureHeaderMediaPreviewUrl(params: EnsureHeaderMediaPrevi
       return { url: cachedUrl, expiresAt: cachedExpiresAt || null, mode: 'public', source: 'cache' }
     }
   } catch (e) {
-    warn(logger, '[TemplatePreview] Falha ao ler cache do Supabase.', { templateName })
+    warn(logger, '[TemplatePreview] Falha ao ler cache de mídia.', { templateName })
   }
 
   const exampleProbeTimeoutMs = Number(process.env.MEDIA_EXAMPLE_PROBE_TIMEOUT_MS || '3000')
@@ -292,72 +293,26 @@ export async function ensureHeaderMediaPreviewUrl(params: EnsureHeaderMediaPrevi
     return null
   }
 
-  const bucket = String(process.env.SUPABASE_TEMPLATE_MEDIA_BUCKET || 'wa-template-media')
-  try {
-    await client.storage.createBucket(bucket, { public: true })
-  } catch (e) {
-    // ignore
-  }
-  try {
-    await client.storage.updateBucket(bucket, { public: true })
-  } catch (e) {
-    warn(logger, '[TemplatePreview] Falha ao marcar bucket como público.', { bucket })
-  }
-
   const ext = guessExtFromContentType(contentType)
   const urlHash = createHash('sha256').update(example).digest('hex').slice(0, 12)
   const safeName = String(templateName || 'template').replace(/[^a-zA-Z0-9_\-]/g, '_')
   const path = `templates/${safeName}/preview_${urlHash}.${ext}`
-
-  const up = await client.storage
-    .from(bucket)
-    .upload(path, downloaded.buffer, {
-      contentType,
-      upsert: true,
-      cacheControl: '3600',
-    })
-  if (up.error) {
-    warn(logger, '[TemplatePreview] Falha ao subir mídia no bucket.', { templateName, error: up.error })
+  let hosted: Awaited<ReturnType<typeof uploadPrivateMedia>>
+  try {
+    hosted = await uploadPrivateMedia(path, downloaded.buffer, contentType)
+  } catch {
+    warn(logger, '[TemplatePreview] Falha ao armazenar mídia privada.', { templateName })
+    return null
+  }
+  const finalUrl = hosted.url
+  const expiresAt = hosted.expiresAt
+  const mode = hosted.mode
+  const status = await probeUrl(finalUrl, Number(process.env.MEDIA_PUBLIC_PROBE_TIMEOUT_MS || '8000'))
+  if (status < 200 || status >= 300) {
+    warn(logger, '[TemplatePreview] URL assinada indisponível.', { templateName, status })
     return null
   }
 
-  const pub = client.storage.from(bucket).getPublicUrl(path)
-  const publicUrl = pub?.data?.publicUrl
-  const probeTimeoutMs = Number(process.env.MEDIA_PUBLIC_PROBE_TIMEOUT_MS || '8000')
-
-  let finalUrl: string | null = null
-  let expiresAt: string | null = null
-  let mode: 'public' | 'signed' = 'public'
-
-  if (publicUrl) {
-    const status = await probeUrl(publicUrl, probeTimeoutMs)
-    if (status >= 200 && status < 300) {
-      finalUrl = publicUrl
-    } else {
-      warn(logger, '[TemplatePreview] URL público inacessível, tentando signed.', {
-        templateName,
-        status,
-        bucket,
-      })
-      const expiresIn = Number(process.env.MEDIA_SIGNED_URL_TTL_SECONDS || String(24 * 60 * 60))
-      const signed = await client.storage.from(bucket).createSignedUrl(path, expiresIn)
-      const signedUrl = signed?.data?.signedUrl
-      if (signedUrl) {
-        const signedStatus = await probeUrl(signedUrl, probeTimeoutMs)
-        if (signedStatus >= 200 && signedStatus < 300) {
-          finalUrl = signedUrl
-          expiresAt = new Date(Date.now() + expiresIn * 1000).toISOString()
-          mode = 'signed'
-        } else {
-          warn(logger, '[TemplatePreview] Signed URL inacessível.', { templateName, signedStatus })
-        }
-      } else {
-        warn(logger, '[TemplatePreview] Falha ao criar signed URL.', { templateName })
-      }
-    }
-  }
-
-  if (!finalUrl) return null
 
   try {
     await client
